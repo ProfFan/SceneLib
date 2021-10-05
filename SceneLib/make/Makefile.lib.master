@@ -1,0 +1,60 @@
+#
+# Makefile for source files for libraries
+# Included by all individual Makefiles
+# Individual Makefiles should define:
+# SOURCES           .cc source files
+#
+# and optionally:
+#
+# EXTRAHEADERS      Extra .h headers (those with same root as .cc need not
+#                   be specified) in the source directory which belong should
+#                   be included in the library distribution.
+#
+# EXTRACFLAGS       Extra flags for compiling sources in this directory,
+#                   such as additional search paths for includes.
+# 
+
+# Library has same name as the directory the sources are in
+LIBRARY := $(notdir $(shell pwd))
+
+CFLAGS = -I$(HORINCDIR) $(EXTRACFLAGS) -I../include -g -Wall -D$(OS) -D$(ARCH) -fpermissive
+
+OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
+HEADERS = $(addsuffix .h, $(basename $(SOURCES))) $(EXTRAHEADERS)
+
+all: library #doc
+
+clean:
+	rm -f *.o *~ *bak depend.mk .depend_done  core
+	rm -rf autodoc/
+
+library: ../lib/lib$(LIBRARY).a
+
+../lib/lib$(LIBRARY).a: $(OBJECTS)
+	ar r $@ $(OBJECTS)
+	ranlib $@
+
+%.o:%.cc ../.all_depend_done
+	$(CC) -c $(CFLAGS) $< -o $@ 
+
+../.all_depend_done:
+	cd ..; make depend
+
+depend: .depend_done
+
+# Soft link to headers from include directory rather than
+# copying them to avoid duplication
+.depend_done: $(HEADERS)
+	cd ../include; $(foreach header,$(HEADERS),ln -sf ../$(LIBRARY)/$(header) . ;)
+	rm -f depend.mk
+	- $(CC) -M $(CFLAGS) $(SOURCES) >> depend.mk
+	touch .depend_done
+
+doc: $(HEADERS)
+	mkdir -p autodoc
+	doc++ -d autodoc -f -b -k $(HEADERS)
+	doc++ -t -o autodoc/$(LIBRARY).tex  -k $(HEADERS)
+	cp /usr/local/Doc++/docxx.sty autodoc/
+	cd autodoc; latex $(LIBRARY).tex; latex $(LIBRARY).tex
+
+-include depend.mk

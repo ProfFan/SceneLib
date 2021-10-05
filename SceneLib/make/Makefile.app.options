@@ -1,0 +1,58 @@
+#---Should be included at the top of application Makefiles
+
+#---Architecture dependent stuff---
+ARCH = $(shell uname -m)
+OS = $(shell uname -s)
+SYSTEM = NTSC
+
+CC = g++
+
+#---Specify location of system libraries---
+
+#---Scene Libraries
+# SCENEBASEDIR should be defined in individual Makefiles
+SCENEINCDIR = $(SCENEBASEDIR)/include
+SCENELIBDIR = $(SCENEBASEDIR)/lib
+
+SCENELIB = -L$(SCENELIBDIR) -lScene
+SCENELIBFILE = $(SCENELIBDIR)/libScene.a
+
+SCENEXFORMSBITSLIB = -L$(SCENELIBDIR) -lSceneXformsBits
+SCENEXFORMSBITSLIBFILE = $(SCENELIBDIR)/libSceneXformsBits.a
+
+SCENEIMPROCLIB = -L$(SCENELIBDIR) -lSceneImproc
+SCENEIMPROCLIBFILE = $(SCENELIBDIR)/libSceneImproc.a
+
+SCENEHEADLIB = -L$(SCENELIBDIR) -lSceneHead
+SCENEHEADLIBFILE = $(SCENELIBDIR)/libSceneHead.a
+
+#---Horatio Libraries---
+# Change HORBASEDIR if necessary
+HORBASEDIR = /home/fan/Projects/CV/SLAM/Misc/horatio
+HORINCDIR = $(HORBASEDIR)/include
+HORLIBDIR = $(HORBASEDIR)/lib-$(ARCH)
+HORLIBS =  -L$(HORLIBDIR) -lhoratio
+
+#---XForms Libraries---
+# Usually Xforms should install itself in system directories so can
+# leave XFORMSINCDIR XFORMSLIBDIR blank
+ifeq ($(OS), Linux)
+XFORMSINCDIR = .
+XFORMSLIBS = -lforms
+endif
+ifeq ($(OS), SunOS)
+XFORMSINCDIR = /data/hmc1/ajd/Sun/xforms/FORMS
+XFORMSLIBS = -L/data/hmc1/ajd/Sun/xforms/FORMS -lforms
+endif
+
+#---X/Image Libraries---
+XLIBS = -L/usr/openwin/lib -L/usr/X11R6/lib -lX11 -lXow -lXt -lXaw -lXmu -lXext 
+
+#-lX11 -lXt -lXow -lXaw -static
+
+#---Image Libraries---
+IMAGELIBS = -liff -lmit
+
+#---Maths Libraries---
+MATHSLIBS = -lm
+

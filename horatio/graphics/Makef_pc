@@ -1,0 +1,38 @@
+# Copyright 1993 Philip F. McLauchlan (pm@robots.oxford.ac.uk)
+#                Robotics Research Group, Oxford University.
+SHELL = \bin\sh
+NAME = graphics
+INCDIR = ..\include
+HFILEDIR = $(INCDIR)\horatio
+INCLUDE = $(HFILEDIR)\$(NAME).h
+HFILES = def.h print.h colour.h display.h state.h
+
+#---Sun stuff---
+
+#---compilation options---
+CC = CL
+CFLAGS = -c -AL
+
+#---files---
+LIB = ..\lib\horatio.lib
+OFILES = xprint.obj colour.obj xdisplay.obj ximage.obj state.obj
+
+#---make rules---
+.c.obj:
+	$(CC) $(CFLAGS) $<
+	lib $(LIB) -+$*.obj, ,	
+
+$(LIB): $(OFILES)
+
+$(OFILES): $(INCLUDE) $(HFILEDIR)\image.h $(HFILEDIR)\list.h \
+		      $(HFILEDIR)\math.h  $(HFILEDIR)\global.h
+
+$(LIB)(ximage.obj xdisplay.obj): ximage.h
+
+#---library include file rule---
+$(INCLUDE): $(HFILES) Makefile
+	cat $(HFILES) > $(INCLUDE)
+
+#---clean directory rule---
+clean:
+	rm -f *.o *~

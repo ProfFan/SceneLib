@@ -1,0 +1,59 @@
+# Copyright 1993 Philip F. McLauchlan (pm@robots.oxford.ac.uk)
+#                Robotics Research Group, Oxford University.
+SHELL = \bin\sh
+INCDIR = ..\include
+HFILEDIR = $(INCDIR)\horatio
+INCLUDE = $(HFILEDIR)\list.h
+HFILES = def.h single.h double.h assoc.h list_io.h
+
+#---Sun stuff---
+
+#---compilation options---
+CC = cl
+CFLAGS = -c -AL
+
+#---files---
+LIB = ..\lib\horatio.lib
+OFILES = single.obj double.obj assoc.obj list_io.obj
+
+#---make rules---
+.c.obj:
+	$(CC) $(CFLAGS) $<
+	lib $(LIB) -+$*.obj, ,
+
+$(LIB): $(OFILES)
+
+#---transputer stuff---
+
+#---compilation options---
+TCOFLAGS = /t800 /j $(INCDIR) /DHOR_TRANSPUTER
+.SUFFIXES: .tio .trd
+
+#---files---
+TRANS_LIB_STDIO = ..\lib-T800\list_io.lib
+TRANS_LIB_STDRD = ..\lib-T800\list_rd.lib
+TCOFILES_IO = single.tio double.tio assoc.tio list_io.tio
+TCOFILES_RD = single.trd double.trd assoc.trd list_io.trd
+
+#---make rules---
+T800: $(TRANS_LIB_STDIO) $(TRANS_LIB_STDRD)
+
+$(TRANS_LIB_STDIO): $(TCOFILES_IO)
+	ilibr $(TCOFILES_IO) /o $(TRANS_LIB_STDIO)
+	del *.tio
+
+$(TRANS_LIB_STDRD): $(TCOFILES_RD)
+	ilibr $(TCOFILES_RD) /o $(TRANS_LIB_STDRD)
+	del *.trd
+
+.c.tio:
+	icc $* $(TCOFLAGS) /o $*.tio
+
+.c.trd:
+	icc $* $(TCOFLAGS) /DHOR_REDUCED_LIB /o $*.trd
+
+$(OFILES) $(TCOFILES_IO) $(TCOFILES_RD): $(INCLUDE) $(HFILEDIR)/global.h
+
+#---library include file rule---
+$(INCLUDE): $(HFILES) Makef_pc
+	cat $(HFILES) > $(INCLUDE)

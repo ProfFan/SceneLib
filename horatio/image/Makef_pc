@@ -1,0 +1,76 @@
+# Copyright 1993 Philip F. McLauchlan (pm@robots.oxford.ac.uk)
+#                Robotics Research Group, Oxford University.
+SHELL = \bin\sh
+INCDIR = ..\include
+HFILEDIR = $(INCDIR)\horatio
+INCLUDE = $(HFILEDIR)\image.h
+HFILES1 = def.h image.h alloc.h misc.h im_comp.h convert.h subsamp.h image_io.h
+HFILES2 = im_file.h iff_file.h mit_file.h pgm_file.h ppm_file.h jpeg_file.h
+HFILES3 = gif_file.h sequence.h stream.h ps_image.h
+HFILES = $(HFILES1) $(HFILES2)
+
+#---Sun stuff---
+
+#---compilation options---
+CC = cl
+CFLAGS = -c -AL
+
+#---files--
+LIB = ..\lib\horatio.lib
+OFILES = alloc.obj misc.obj im_comp.obj convert.obj subsamp.obj im_file.obj \
+	 iff_file.obj mit_file.obj pgm_file.obj ppm_file.obj jpeg_file.obj \
+	 gif_file.obj sequence.obj stream.obj ps_image.obj
+
+#---make rules---
+.c.obj:
+	$(CC) $(CFLAGS) $<
+	lib $(LIB) -+$*.obj, ,
+
+$(LIB): $(OFILES)
+
+#---transputer stuff---
+
+#---compilation options---
+TCOFLAGS = /t800 /j $(INCDIR) /DHOR_TRANSPUTER
+.SUFFIXES: .tio .trd
+
+#---files---
+TRANS_LIB_STDIO = ..\lib-T800\image_io.lib
+TRANS_LIB_STDRD = ..\lib-T800\image_rd.lib
+TCO_IO1 = alloc.tio misc.tio im_comp.tio convert.tio subsamp.tio image_io.tio
+TCO_IO2 = im_file.tio iff_file.tio mit_file.tio sequence.tio stream.tio
+TCOFILES_IO = $(TCO_IO1) $(TCO_IO2)
+TCOFILES_RD = alloc.trd misc.trd im_comp.trd convert.trd subsamp.trd image_io.trd
+
+#---make rules---
+T800: $(TRANS_LIB_STDIO) $(TRANS_LIB_STDRD)
+
+$(TRANS_LIB_STDIO): $(TCOFILES_IO)
+	ilibr $(TCO_IO1) /o temp1.lib
+	ilibr $(TCO_IO2) /o temp2.lib
+	ilibr temp1.lib temp2.lib /o $(TRANS_LIB_STDIO)
+	del *.tco
+	del temp1.lib
+	del temp2.lib
+
+$(TRANS_LIB_STDRD): $(TCOFILES_RD)
+	ilibr $(TCOFILES_RD) /o $(TRANS_LIB_STDRD)
+	del *.trd
+
+.c.tio:
+	icc $* $(TCOFLAGS) /o $*.tio
+
+.c.trd:
+	icc $* $(TCOFLAGS) /DHOR_REDUCED_LIB /o $*.trd
+
+$(OFILES) $(TCOFILES_IO) $(TCOFILES_RD): $(INCLUDE) $(HFILEDIR)\global.h $(HFILEDIR)\math.h $(HFILEDIR)\list.h
+
+#---library include file rule---
+$(INCLUDE): $(HFILES) Makef_pc
+	cat $(HFILES1) > temp1
+	cat $(HFILES2) > temp2
+	cat $(HFILES3) > temp3
+	cat temp1 temp2 temp3 > $(INCLUDE)
+	del temp1
+	del temp2
+	del temp3

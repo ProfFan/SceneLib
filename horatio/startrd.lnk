@@ -1,0 +1,6 @@
+#include startrd.lnk
+glob_rd.lib
+pipe.lib
+list_rd.lib
+math_rd.lib
+image_rd.lib

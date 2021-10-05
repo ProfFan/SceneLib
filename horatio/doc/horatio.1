@@ -1,0 +1,83 @@
+.TH HORATIO 1L \" -*- nroff -*-
+.SH NAME
+horatio \- image sequence processing tool for X-windows
+.SH SYNOPSIS
+.B horatio
+[\-b\fIbase-name\fR] [\-n\fInumber-of-canvases\fR]
+         [\-s\fIcanvas-size\fR]
+.SH DESCRIPTION
+.B horatio
+is an interactive X-windows image sequence processing tool.
+At present it contains a Canny edge detector, the Plessey and Smith
+corner detectors, a corner matcher,
+an normal image flow algorithm, a correlation
+image matcher and a grey-level segmentation algorithm.
+The image files must be in MIT, IFF or PGM format, and must have one of
+the standard forms \fIbase-name.xxx.suffix\fP or \fIbase-namexx.suffix\fP
+where \fIbase-name\fP is the file
+base name displayed in the editable window at top-right (see the
+.I \-b
+option below), \fIxxx\fP and \fIxx\fP are three/two digit positive decimal
+integers, starting with \fI000/00\fP, and \fIsuffix\fP is one of
+.I .mit
+.I .iff
+.I .pgm
+ir
+.I .i
+Suffices
+.I .mit
+and
+.I .i
+indicate MIT format files,
+.I .iff
+indicates IFF files, and
+.I .pgm
+indicates PGM files. Extra
+.I .gz
+or
+.I .z
+suffices indicate GNU compression, while
+.I .Z
+indicates UNIX compression. Both are handled by
+.B horatio.
+The operation of the command buttons (using the left mouse button)
+is as follows. The "Movie" button displays the whole sequence repeated ten
+times in the first canvas (see the
+.I \-n
+option below). The "Init" button displays the first image of the sequence
+and sets the mouse buttons to allow the user to select image regions in a
+canvas. The "Operations" button pops up a list of image processing toggle
+buttons: "Canny", "Plessey Corner", "Smith Corner", "Corner Matcher",
+"Image Flow", "Image Segment" and "Correlation".
+To apply them to the images, create a
+rectangular region-of-interest (ROI) in the current image by dragging the
+left button. Select the ROI by pressing the right button in the canvas.
+That creates a new process of the type specified by which toggles are lit.
+"Step" now runs the new process in the ROI and displays the result.
+Another "Step" repeats for the next image, and the user
+can continue to the end of the sequence. At any time a new process can
+be started by by selecting a new ROI, thus many processes can be running
+in "virtual parallel". The only way to destroy processes is to press "Init"
+again, which returns to the first image and kills all the processes.
+
+Pressing the "Window" button changes the canvas (if there is more than one).
+Press "Init"" to display the first image in the new canvas.
+The "Parameters" button pops up a panel with popup buttons to invoke
+panels to appear with editable strings to appear that allow the user to
+change the parameters of the relevant algorithm.
+The changes to not apply to processes already created, only to
+those subsequently started.
+.SS OPTIONS
+.TP
+.I \-bbase-name
+Set the image sequence file base-name. Default is "agv"
+.TP
+.I \-nnumber-of-canvases
+Create the given number of canvases. Default is 1.
+.TP
+.I \-scanvas-size
+Set the width and height of each canvas. Default is 512.
+The given size should be as big as the size of each image in pixels.
+.SH "SEE ALSO"
+.LP
+.BR horatio(3)

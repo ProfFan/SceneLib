@@ -1,0 +1,137 @@
+#---Should be included at the bottom of application Makefiles
+
+all: $(EXECUTABLES)
+
+clean: cleanexceptexecutables
+	rm -f $(EXECUTABLES)
+
+#---For distribution: make simulations 
+#---Then clean out object files but leave executables
+
+distrib:
+	make scenesim 
+	- make sceneanalyse
+	make cleanexceptexecutables
+
+cleanexceptexecutables:
+	rm -f *.o *~ depend*.mk .depend_done* core *bak
+
+ALLCOMMONCOBJFILES = $(addsuffix .o,$(basename $(ALLCOMMONCSOURCEFILES)))
+ALLCOMMONCCOBJFILES = $(addsuffix .o,$(basename $(ALLCOMMONCCSOURCEFILES)))
+ALLCOMMONOBJFILES = $(ALLCOMMONCOBJFILES) $(ALLCOMMONCCOBJFILES)
+
+SIMROBCOMMONCOBJFILES = $(addsuffix .o,$(basename $(SIMROBCOMMONCSOURCEFILES)))
+SIMROBCOMMONCCOBJFILES = $(addsuffix .o,$(basename $(SIMROBCOMMONCCSOURCEFILES)))
+SIMROBCOMMONOBJFILES = $(SIMROBCOMMONCOBJFILES) $(SIMROBCOMMONCCOBJFILES)
+
+ROBONLYCOBJFILES = $(addsuffix .o,$(basename $(ROBONLYCSOURCEFILES)))
+ROBONLYCCOBJFILES = $(addsuffix .o,$(basename $(ROBONLYCCSOURCEFILES)))
+ROBONLYOBJFILES = $(ROBONLYCOBJFILES) $(ROBONLYCCOBJFILES)
+
+SIMONLYCOBJFILES = $(addsuffix .o,$(basename $(SIMONLYCSOURCEFILES)))
+SIMONLYCCOBJFILES = $(addsuffix .o,$(basename $(SIMONLYCCSOURCEFILES)))
+SIMONLYOBJFILES = $(SIMONLYCOBJFILES) $(SIMONLYCCOBJFILES)
+
+ANALYSECOBJFILES = $(addsuffix .o,$(basename $(ANALYSECSOURCEFILES)))
+ANALYSECCOBJFILES = $(addsuffix .o,$(basename $(ANALYSECCSOURCEFILES)))
+ANALYSEOBJFILES = $(ALLCOMMONOBJFILES) $(ANALYSECOBJFILES) $(ANALYSECCOBJFILES)
+
+ROBSIMCCROBOBJFILES =  $(addsuffix rob.o,$(basename $(ROBSIMCCSOURCEFILES)))
+ROBSIMCCSIMOBJFILES =  $(addsuffix sim.o,$(basename $(ROBSIMCCSOURCEFILES)))
+ROBOBJFILES = $(ALLCOMMONOBJFILES) $(SIMROBCOMMONOBJFILES) $(ROBONLYOBJFILES) $(ROBSIMCCROBOBJFILES)
+SIMOBJFILES = $(ALLCOMMONOBJFILES) $(SIMROBCOMMONOBJFILES) $(SIMONLYOBJFILES) $(ROBSIMCCSIMOBJFILES)
+
+# Make Binaries
+scenerob: $(ROBOBJFILES) Makefile $(SCENELIBFILE) $(SCENEXFORMSBITSLIBFILE)
+	$(CC) -o scenerob $(ROBOBJFILES) $(ROBLINKFLAGS)
+
+scenesim: $(SIMOBJFILES) Makefile $(SCENELIBFILE) $(SCENEXFORMSBITSLIBFILE)
+	$(CC) -o scenesim $(SIMOBJFILES) $(SIMLINKFLAGS)
+
+sceneanalyse: $(ANALYSEOBJFILES) Makefile $(SCENELIBFILE) $(SCENEXFORMSBITSLIBFILE)
+	$(CC) -o sceneanalyse $(ANALYSEOBJFILES) $(SIMLINKFLAGS)
+
+# Simulation / Robot / Analyse independent object files
+$(ALLCOMMONCCOBJFILES): %.o: %.cc .depend_done_allcommon
+	$(CC) -c $(CFLAGS) $< -o $@
+$(ALLCOMMONCOBJFILES): %.o: %.c .depend_done_allcommon
+	$(CC) -c $(CFLAGS) $< -o $@
+
+# Simulation / Robot independent object files
+$(SIMROBCOMMONCCOBJFILES): %.o: %.cc .depend_done_simrobcommon
+	$(CC) -c $(CFLAGS) $< -o $@
+$(SIMROBCOMMONCOBJFILES): %.o: %.c .depend_done_simrobcommon
+	$(CC) -c $(CFLAGS) $< -o $@
+
+# Robot-specific object files
+$(ROBONLYCCOBJFILES): %.o: %.cc .depend_done_robonly
+	$(CC) -c $(ROBCFLAGS) $< -o $@
+$(ROBONLYCOBJFILES): %.o: %.c .depend_done_robonly
+	$(CC) -c $(ROBCFLAGS) $< -o $@
+
+# Simulation-specific object files
+$(SIMONLYCCOBJFILES): %.o: %.cc .depend_done_simonly
+	$(CC) -c $(SIMCFLAGS) $< -o $@
+$(SIMONLYCOBJFILES): %.o: %.c .depend_done_simonly
+	$(CC) -c $(SIMCFLAGS) $< -o $@
+
+# Analyse-specific object files
+$(ANALYSECCOBJFILES): %.o: %.cc .depend_done_analyse
+	$(CC) -c $(SIMCFLAGS) $< -o $@
+$(ANALYSECOBJFILES): %.o: %.c .depend_done_analyse
+	$(CC) -c $(SIMCFLAGS) $< -o $@
+
+# Robot/Simulation dually compiled files for robot
+$(ROBSIMCCROBOBJFILES): %rob.o: %.cc .depend_done_robsim_rob
+	$(CC) -c $(ROBCFLAGS) $< -o $@
+
+# Robot/Simulation dually compiled files for simulation
+$(ROBSIMCCSIMOBJFILES): %sim.o: %.cc .depend_done_robsim_sim
+	$(CC) -c $(SIMCFLAGS) $< -o $@
+
+# Can call make depend explicitly if required, but don't need to becuase 
+# the dependencies will be generated as needed by basic make call
+depend: .depend_done_allcommon .depend_done_robsimcommon .depend_done_robonly .depend_done_simonly .depend_done_analyse .depend_done_robsim_rob .depend_done_robsim_sim
+
+.depend_done_allcommon:
+	rm -f depend_allcommon.mk
+	- $(CC) -M $(CFLAGS) $(ALLCOMMONCSOURCEFILES) $(ALLCOMMONCCSOURCEFILES) >> depend_allcommon.mk
+	touch .depend_done_allcommon
+
+.depend_done_simrobcommon:
+	rm -f depend_simrobcommon.mk
+	- $(CC) -M $(CFLAGS) $(SIMROBCOMMONCSOURCEFILES) $(SIMROBCOMMONCCSOURCEFILES) >> depend_simrobcommon.mk
+	touch .depend_done_simrobcommon
+
+.depend_done_robonly:
+	rm -f depend_robonly.mk
+	- $(CC) -M $(ROBCFLAGS) $(ROBONLYCSOURCEFILES) $(ROBONLYCCSOURCEFILES) >> depend_robonly.mk
+	touch .depend_done_robonly
+
+.depend_done_simonly:
+	rm -f depend_simonly.mk
+	- $(CC) -M $(SIMCFLAGS) $(SIMONLYCSOURCEFILES) $(SIMONLYCCSOURCEFILES) >> depend_simonly.mk
+	touch .depend_done_simonly
+
+.depend_done_analyse:
+	rm -f depend_analyse.mk
+	- $(CC) -M $(SIMCFLAGS) $(ANALYSECSOURCEFILES) $(ANALYSECCSOURCEFILES) >> depend_analyse.mk
+	touch .depend_done_analyse
+
+.depend_done_robsim_rob:
+	rm -f depend_robsim_rob.mk
+	$(foreach sourcefile,$(ROBSIMCCSOURCEFILES),$(CC) -M $(ROBCFLAGS) $(sourcefile) | sed s/$(basename $(sourcefile)).o/$(basename $(sourcefile))rob.o/ >> depend_robsim_rob.mk ;)
+	touch .depend_done_robsim_rob
+
+.depend_done_robsim_sim:
+	rm -f depend_robsim_sim.mk
+	$(foreach sourcefile,$(ROBSIMCCSOURCEFILES),$(CC) -M $(SIMCFLAGS) $(sourcefile) | sed s/$(basename $(sourcefile)).o/$(basename $(sourcefile))sim.o/ >> depend_robsim_sim.mk ;)
+	touch .depend_done_robsim_sim
+
+-include depend_allcommon.mk
+-include depend_simrobcommon.mk
+-include depend_robonly.mk
+-include depend_simonly.mk
+-include depend_analyse.mk
+-include depend_robsim_rob.mk
+-include depend_robsim_sim.mk

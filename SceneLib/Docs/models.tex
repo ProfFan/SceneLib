@@ -1,0 +1,760 @@
+%   Scene: software for sequential localisation and map-building
+%
+%   models.tex
+%   Copyright (C) 2000 Andrew Davison
+%   ajd@robots.ox.ac.uk
+%   Scene home page: http://www.robots.ox.ac.uk/~ajd/Scene/
+%
+%   This library is free software; you can redistribute it and/or
+%   modify it under the terms of the GNU Lesser General Public
+%   License as published by the Free Software Foundation; either
+%   version 2.1 of the License, or (at your option) any later version.
+%
+%   This library is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Lesser General Public License for more details.
+%
+%   You should have received a copy of the GNU Lesser General Public
+%   License along with this library; if not, write to the Free Software
+%   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+%   Documentation on models and state representation in Scene
+
+\documentclass{article}
+%
+\usepackage{epsfig}
+\usepackage{makeidx}  % allows for index generation
+%
+
+
+\begin{document}
+
+\input{newcom.tex}
+\input{symbols.tex}
+
+
+\bibliographystyle{plain}
+
+\title{{Models and State Representation in Scene: Generalised Software for Sequential Map-Building and Localisation}
+}
+
+\author{Andrew J. Davison\\
+Robotics Research Group\\
+Department of Engineering Science\\
+University of Oxford\\
+UK\\
+ajd@robots.ox.ac.uk\\
+http://www.robots.ox.ac.uk/\~{ }ajd/
+}
+
+\maketitle
+
+%\tableofcontents 
+
+\section{Introduction}
+\label{section:introduction}
+
+A major goal of Scene is to permit the uniform use of sequential
+estimation methods across the widest possible range of robot, camera
+or other mobile sensor platforms. To this end, a modular {\bf model}
+system is used to represent the specifics of a particular system, so
+that applying Scene to a new application is a simple matter of
+creating new model classes which can be ``plugged in'' to the main
+system.
+
+In this document we will discuss in general the meaning of using
+mathematical models to represent real-world systems, and then look
+specifically at how models are used in Scene to describe motion and
+measurements in one, two and three dimensions, explaining the
+procedure needed to use Scene in a new application domain by building
+new model classes.
+
+This document is best read in combination with a study of the source
+code of the example programs using the Scene Library which are
+supplied in the SceneApp package: the specific implementations there
+will clarify the general explanations given here.
+
+See~\cite{Davison:Kita:Smile2000} for more general information
+on the Sequential Localisation and Map-Building theory behind Scene. 
+
+\section{Models}
+
+A model is a mathematical representation of a real-world process. If
+we wish to make sense of any data obtained from measurements the real
+world, a model is essential: it is what connects the numbers we put
+into and get out of a system.
+
+The way we prefer to define models, however, is as follows:
+\bi
+\item {\bf A model is a simplification of reality.} 
+\ei
+In the real world, systems are never made from pure
+geometrical objects interacting in perfect ways.
+Even saying something like ``the side of this object is flat'' is, if
+we examine the object closely enough, an approximation to its
+non-smooth structure on a microscopic or molecular scale --- while
+this is a rather extreme way to think about things, we feel that it
+is important to realise what is going on when we talk about models:
+they are always simplifications.
+
+Constructing a model is a process of forming a description of a
+real-world system which reduces its actual complexity to equations and
+a number of {\bf parameters} describing the specifics of a simplified
+mathematical process. The amount of complexity in the real-world
+system which we attempt to represent in the model is always a
+choice. Think of building a model for an articulated robot arm: the
+choice taken here would usually be to represent it as a chain of rigid
+components joined by hinged couplings with motors and encoders. A more
+complex model, though, might also take into account factors such as
+the flexibility of the ``rigid'' components. A line must be drawn 
+somewhere --- usually
+in a position such that the model remains mathematically convenient
+while representing reality with a high enough degree of realism to
+satisfy our needs.
+
+As well as representing what we know about a system in a model, we
+must also acknowledge the finer details that we don't know about the
+system: this is what is usually referred to as noise, or uncertainty
+in the model.  {\bf Noise accounts for the things that we don't
+attempt to model.} There is of course no such thing as random noise in
+(classical!) physics: bodies move and interact deterministically. If
+we had a perfect description of a system then we would not need
+measurements to tell us what was happening to it: all we would need to
+do would be to set up the ``perfect model'' and let it run.  However,
+while in theory we could model everything (slipping wheels; human
+joints, muscles, chemical reactions!), in reality we can't know all
+the details of what is happening to a system. Models have to stop
+somewhere: the rest of what is going on we call noise, and estimate
+the size of its effect. It is this measure of the amount a model
+potentially differs from reality which means that {\bf measurements}
+are able to improve our knowledge of a system. Measurement processes
+themselves have models with uncertainty, and thus can be combined in a
+weighted sense with the estimates from our system model to get
+improved estimates.
+
+
+\section{Using Models in Scene}
+
+Scene's current domain of applicability can be defined as follows:
+\bi
+\item Scene can be applied to any situation where we wish to estimate the
+states of a generally moving robot and many stationary features of
+which it is able to make measurements via one or more sensors which
+are mounted in a fixed position relative to the robot.
+\ei
+(Note that there are several interesting ways of using Scene which fit
+these criteria although they might not initially seem to do so. One is
+that a moving, active sensor such as a pair of cameras mounted on a
+motorised platform can be used as long as the whole setup is
+considered as a single sensor (with no internal state) whose base is
+fixed rigidly to the main robot. Another is that Scene has
+successfully been applied to a pair of cooperating robots in the case
+that only one of them carries sensors able to make measurements of
+world features: the second robot can be thought of as simply an
+extension to the first, in rather the same way as we would naturally
+model a two-armed robot as a single system. It does not
+matter that the two cooperating robots are not physically connected.)
+
+
+We will often refer to the ``state'' of a system: this is the vector
+of parameters which, along with the equations specifying our model,
+represent what is currently known about the system. In Scene,
+the total state vector $\vecx$ can be partitioned as follows:
+
+\beq
+\vecx = \vecfour{\vecx_v}{\vecy_1}{\vecy_2}{\vdots}
+~, 
+\eeq
+where $\vecx_v$ is the state of the robot and $\vecy_i$ is the state
+of the $i$th feature. Computation of how this state vector changes
+over time is the goal of all the processing in Scene. The two main
+operations which take place on the state vector are:
+\be
+\item The process equation, which describes how the state of the robot
+changes over time (the motion model):
+\beq
+\vecx_v(t + \Delta t) = \vecf_v(\vecx_v(t), \vecu, \Delta t) + \vecq~.
+\eeq
+$\vecq$ is a zero-mean Gaussian noise vector with covariance $\matQ$
+(the process noise).
+Since the features are assumed to be stationary, their states are not
+involved in the process equation. 
+
+\item The measurement equation, which describes how a measurement is
+made of a feature (the feature measurement model):
+\beq
+\vecz_i = \vech_i(\vecx_v, \vecy_i) + \vecr~.
+\eeq
+$\vecr$ is a zero-mean Gaussian noise vector with covariance $\matR$
+(the measurement noise).
+\ee
+
+%Our current estimate of this true state is the vector $\vecxhat$ with
+%covariance matrix $\matP$. These can be written in the partitioned forms:
+%\beq
+%\vecxhat = \vecfour{\vecxhat_v}{\vecyhat_1}{\vecyhat_2}{\vdots} 
+%~~,~~
+%\matP = \matfour{\matP_{xx} & \matP_{xy_1} & \matP_{xy_2} & \ldots}
+%{\matP_{y_1x} & \matP_{y_1y_1} & \matP_{y_1y_2} & \ldots}
+%{\matP_{y_2x} & \matP_{y_2y_1} & \matP_{y_2y_2} & \ldots}
+%{\vdots       & \vdots         & \vdots         & }
+%~.
+%\eeq
+%The partitioned sections of the covariance matrix represent the
+%coupling of the uncertainties in the different parts of the estimated state.
+%$\matP_{xy_i}$ is the covariance matrix between the estimated robot state
+%$\vecxhat_v$ and that of one of the features
+%$\vecyhat_i$, while $\matP_{y_iy_j}$ is that between the estimated
+%locations of two features $\vecyhat_i$ and $\vecyhat_j$.
+
+Which parameters belong in the state vector? Scene allows a free
+choice to be made about what to choose as the representation for the
+robot state $x_v$ and that of each feature type state $y_i$. As
+discussed above, parameters are numbers which describe the specifics
+of a mathematical model of a system. However, the equations of a model
+might have parameters which need not be in the state vector: they can
+be treated as constant, for instance, like the length of the jointed
+sections of a robot arm.  On a first reflection then, one might define
+state parameters as ``the parameters that change over time.''
+
+However, sometimes it is worthwhile to include in a state vector a
+parameter which represents something in the system which is expected
+to remain constant. While that real quantity stays constant, our
+estimate of it can change (in fact it can only improve) over time as more
+measurements are made. This if a form of on-line self-calibration.
+
+As an example, in previous work on robot localisation it was found that our
+model included one particularly significant systematic error: when a
+velocity command was sent to the robot, the actual velocity achieved
+was not normally distributed about the commanded value, but actually
+about some other mean which differed significantly; e.g. when
+sending the command $1ms^{-1}$ the robot was actually running at $0.9
+\pm 0.1 ms^{-1}$ rather than $1.0 \pm 0.1 ms^{-1}$: there was a
+scaling between the two which was not equal to unity. To overcome this
+problem, we included in the state vector a parameter representing the
+scaling between velocity commands sent and the real velocity of the
+robot. This is not something which expected to change over time;
+rather it is a constant characteristic of a particular robot about
+which we are not very certain. Therefore, taking a first guess of the
+parameter's value (e.g. 1), and a measure of the standard deviation of
+that initial guess (e.g. 0.2), we initialise the parameter into the
+state vector with non-zero covariance. Although the parameter does not
+get changed in the model's process equation, its involvement in
+various equations and Jacobians means that over time and with
+measurements its estimated value will change and its uncertainty will
+decrease. The estimate should converge towards the true value.
+
+In general, if we write down equations to model a system, {\bf any
+parameter which appears in the equations could be placed in the state vector.}
+Parameters which are placed in the state vector will have their
+estimates improved by measurements, while those left out will be be
+constants whose estimated value will not change. A choice must be made
+as to which parameters should be placed in the state vector. The
+downside of including many parameters is that this causes
+computational complexity to be increased. However, if the value of a
+parameter is relatively uncertain, it is worth considering including it
+in the state vector.
+
+A final third type of parameter concerns the effect of {\bf known
+outside influences} on the modelled system. Since physics is
+deterministic, a model of any enclosed system will be deterministic:
+it will be possible to predict its state all future times. However,
+when we model a real object such as a robot, we do not usually have a
+truly enclosed system: there may be something which is
+influencing it, for instance via purposive commands and inputs, whether human operator or
+onboard computer. Whichever it is, its effect cannot be included in a
+deterministic model: we do not try to represent the state of the
+computer or a human brain in our state vector; but its influence is
+not constant either. Nevertheless, we may have information about the
+inputs the robot is receiving and these affect how the robot's state
+will evolve. We call these input parameters {\bf control parameters}
+and in equations use the vector {\vecu} to refer to them.
+
+Note: there may also be various {\bf unknown outside influences} on a
+system. In this case, their effect must be included as noise in the
+process equation (if the outside influences are truly unknown then
+they have a ``zero mean'' overall effect so do not appear in the
+process equation itself). For instance, if instead of a robot we have
+mounted a sensor on a human head (such as a forehead-mounted,
+outward-looking camera) and aim to estimate the head's motion in the
+same way as which we would estimate the motion of a robot equipped
+with the same sensor, the way in which the
+person moves is unknown, but contributes uncertainty to the camera's
+motion in a way which can be modelled. Again, all we are doing here is
+accepting that noise in a model represents the things we don't attempt
+to model.
+
+Summarising, parameters can be divided into three types:
+\be
+\item {\bf State parameters}, which are parameters describing moving
+aspects of the system, or stationary aspects of which we wish to
+improve initially uncertain estimates.
+
+\item {\bf Constant parameters}, of which we have an estimate with
+which we are happy and which we are content not to improve.
+
+\item {\bf Control parameters}, which are quantities which
+affect the future state of the model but which are not known; they
+come from outside the system under consideration, such as control
+inputs to a robot. They are like one-off constants which appear in the
+system equations transiently.
+\ee
+
+
+\section{Position State}
+
+We introduce here the concept of {\bf position state} $\vecx_p$: this
+is a standard, minimal way to represent the raw geometrical position
+and pose of a robot in 1, 2 or 3D space.
+
+Most implementations of robot localisation have made no distinction
+between the concepts of state and position state: usually, what we
+would call the position state --- the minimal description of robot
+location --- is what goes directly into the state vector.  However, as
+discussed above, modelling systems sometimes calls for parameters
+additional to those purely describing position to be part of the state
+vector --- in systems with redundant degrees of freedom for example.
+While it may be the case that the additional parameters appear in the
+state vector simply in addition to those representing pure position,
+more generally the position state is something which is functionally
+derived from all the state parameters:
+
+\beq
+\vecx_p = \vecx_p(\vecx_v)
+\eeq
+
+For instance, if our system is a robot arm, the parameters which we
+store in the state vector might be the angles of articulation at each
+joint. A sensor mounted at the end of the arm has 3D position
+which is a rather complicated function of all of these angles and the
+constant characteristics of the arm.
+
+
+In Scene, we gain greatly from the concept of position state because
+it allows {\bf separation} of the details of a particular robot motion
+model from the essential position information which allows that object
+to interact with other object in the world. Specifically, we can
+separate the concepts of motion model and feature measurement model.
+
+
+When specifying a feature measurement model, we need to define
+functions such as $\vech_i(\vecx_v, \vecy_i)$ (the measurement
+obtained of a feature as a function of the robot state and the
+feature's state). By abstracting this to $\vech_i(\vecx_p, \vecy_i)$
+(the measurement as a function of {\bf robot position} and feature
+state), where we know from the definition of position state
+$\vecx_p(\vecx_v)$, we are able to use measurement models which are
+decoupled from specific robot motion models. For instance, we could
+use the same model of a camera whether it is fixed rigidly to a robot
+vehicle or mounted at the end of an articulated robot arm.
+
+
+It should be noted that the concept of position state, while
+convenient at the current time, is only a step towards what we
+would like to achieve with the future design of Scene, in which a
+robot models could have multiple ``hooks'' into position-state-like
+quantities. This would be necessary if, for instance, a robot
+consisted of multiple non-rigid parts, more than one of which was
+equipped with a sensor.
+
+\subsection{Position State in One Dimension}
+
+\beq
+\vecx_p = (z)
+\eeq
+
+In 1D, the position state consists of a single parameter $z$
+describing displacement along a straight line.
+
+\subsection{Position State in Two Dimensions}
+
+\beq
+\vecx_p = \vecthree{z}{x}{\phi}
+\eeq
+
+\begin{figure}[t]
+\centerline{
+\psfig{file=2d.id,width=50mm}
+}
+\caption{\label{fig:2d}
+Coordinate frames in two dimensions.
+}
+\vspace{2mm} \hrule
+\end{figure}
+
+In 2D movement, position on a plane can be specified by 3 parameters:
+the cartesian coordinates $z$ and $x$ and angle $\phi$ (restricted to
+the range $-\pi < \phi <= \pi$) representing orientation relative to
+the $z$ axis. We apologise
+somewhat here for our choice of $z$ and $x$ as our 2D coordinates
+rather than the more usual $x$ and $y$ --- this choice stems from our
+original application domain in computer vision, where traditionally
+the $z$ axis of coordinate frames are aligned with the optic axis of
+cameras: for a robot with a forward-facing camera, this makes $z$
+horizontal. See Figure~\ref{fig:2d} for clarification of this.
+
+\subsection{Position State in Three Dimensions}
+
+
+Representing position and pose in 3D is substantially more complicated
+than the 1D and 2D cases. There are several different ways to
+represent 3D orientation, but each has its disadvantages. Minimally,
+three parameters are needed to represent 3D orientation (as in for
+example the Euler angle parameterisation), with a further three
+required for cartesian position, leading to a total of six
+parameters. However, we have chosen to add one parameter to this
+minimal six for our standard representation of 3D position and pose
+and use a {\bf quaternion} of 4 parameters to represent orientation.
+
+\beq
+\vecx_p = \left(\begin{array}{c}x\\y\\z\\q_0\\q_x\\q_y\\q_z\end{array}\right)
+\eeq
+
+Quaternions are a well-established way to represent 3D orientation.
+Any 3D rotation can be described by a single rotation about an
+appropriately placed axis. In a quaternion, a unit vector $\vecu$
+(with elements $u_x$, $u_y$, $u_z$) representing the axis of this
+rotation and its angular magnitude $\theta$ are stored as follows:
+\beq
+\vecfour{q_0}{q_x}{q_y}{q_z} = \vecfour{\cos \frac{\theta}{2}}{u_x\sin \frac{\theta}{2}}{u_y\sin \frac{\theta}{2}}{u_z\sin \frac{\theta}{2}} ~.
+\eeq
+Quaternions are defined in this way because they have an algebra which
+allows rotations to be conveniently composed (applied in sequence). 
+In Scene, in the 3D position state vector a quaternion represents the
+rotation of the robot with respect to the fixed world coordinate frame.
+The following is a summary of the relevant properties of quaternions:
+
+\bi
+\item The magnitude of a quaternion, defined as the square root of the
+sum of the squares of the elements, is always 1:
+\beq
+q_0 ^ 2 + q_x ^ 2 + q_y ^ 2 + q_z ^ 2 = 1^2~.
+\eeq 
+\item Quaternion $\vecq$ has a conjugate $\vecqbar$ which represents a
+rotation about the same axis but with negative magnitude, and which is
+defined as:
+\beq
+\vecqbar = \vecfour{q_0}{-q_x}{-q_y}{-q_z}~.
+\eeq
+\item The rotation matrix $\matR$ associated with quaternion $\vecq$
+is defined as follows:
+\beq
+\matR \vecv = \vecq \times \vecv \times \vecqbar
+\eeq
+where $\vecv$ is an arbitrary $3 \times 1$ column vector. We can
+calculate that:
+\beq
+\matR = \matthree{q_0 ^ 2 + q_x ^ 2 - q_y ^ 2 - q_z ^ 2}{2(q_x q_y -
+q_0 q_z)}{2(q_x q_z + q_0 q_y)}
+{2(q_x q_y + q_0 q_z)}{q_0 ^ 2 - q_x ^ 2 + q_y ^ 2 - q_z ^ 2}{2(q_y q_z - q_0 q_x)}
+{2(q_x q_z - q_0 q_y)}{2(q_y q_z + q_0 q_x)}{q_0 ^ 2 - q_x ^ 2 - q_y ^ 2 + q_z ^ 2}~.
+\eeq
+So, if we have quaternion $\vecq$ as part of the
+position state of a robot and form rotation matrix $\matR$ as above, 
+this $\matR$ will relate
+vectors in the {\bf fixed world coordinate frame} $W$ and the {\bf robot
+coordinate frame} $R$ (which is a coordinate frame carried around by
+the robot) as follows:
+\beq
+\vecv^W = \matR \vecv^R ~.
+\eeq
+We prefer to be clear in our descriptions of rotation matrices, and
+refer to this $\matR$ as $\matR^{WR}$ since it relates vectors in
+frames $W$ and $R$: the equation becomes:
+\beq
+\vecv^W = \matR^{WR} \vecv^R ~.
+\eeq
+Note that it is very difficult to get confused about rotation matrices
+when this notation is used: in $\vecv^W = \matR^{WR} \vecv^R$ the
+two frame suffices of the rotation matrix are on the sides closest to
+the vector specified in those frames.
+
+(When referring to vectors, we use the plain notation $\vecv$ to mean
+a purely spatial vector, a directed segment in space not associated
+with any coordinate frame. The notation $\vecv^A$ means the vector of
+coordinate parameters representing that spatial vector in frame $A$.)
+
+\item Composing rotations: if quaternion $\vecq_1$ represents the
+rotation $\matR^{AB}$ and quaternion $\vecq_2$ represents the
+rotation $\matR^{BC}$, then the composite rotation $\matR^{AC} =
+\matR^{AB} \matR^{BC}$ is represented by the {\em product} of the two
+quaternions, defined as:
+\beq
+\vecq_3 = \vecq_1 \times \vecq_2 = 
+\left(
+\begin{array}{c}
+q_{10}q_{20} - (q_{1x}q_{2x} + q_{1y}q_{2y} + q_{1z}q_{2z})\\
+q_{10}\vecthree{q_{2x}}{q_{2y}}{q_{2z}} +
+q_{20}\vecthree{q_{1x}}{q_{1y}}{q_{1z}} +
+\left(
+\begin{array}{c}
+q_{1y}q_{2z} - q_{2y}q_{1z}\\
+q_{1z}q_{2x} - q_{2z}q_{1x}\\
+q_{1x}q_{2y} - q_{2x}q_{1y}
+\end{array}
+\right)
+\end{array}
+\right)
+\eeq
+
+\ei
+
+The disadvantage of the quaternion representation is that it is
+redundant, using four parameters to represent something which can be
+described minimally with three. This leads to the minor factor of
+extra computational complexity in calculations due to the extra
+parameter, but more importantly it means that care must be taken to
+make sure that the four parameters in the quaternion part of the state
+vector represent a true quaternion: that is to say that they satisfy
+the magnitude criterion above.
+
+For this reason, generalised normalisation functionality has been
+built into the models in Scene: a model class should know how to
+normalise its state vector if necessary. In a model containing a
+quaternion, this involves enforcing the magnitude constraint described
+above.
+
+\section{Model Classes}
+
+In Scene, modularity is implemented via a system of {\tt Model}
+classes. There are three types:
+\be
+\item {\tt Motion\_Model} classes describing the movement of a
+robot system of other sensor platform. 
+\item {\tt Feature\_Measurement\_Model} classes each describing the
+process of measuring a feature with a particular sensor. 
+\item {\tt Internal\_Measurement\_Model} classes describing
+measurements that a system makes of itself.
+\ee
+
+{\tt Motion\_Model}, {\tt Feature\_Measurement\_Model},
+{\tt Internal\_Measurement\_Model} base classes are defined in the source file
+{\tt SceneLib/Scene/models\_base.h} within the SceneLib
+distribution. When building a Scene application, specific model
+classes are derived from these base classes. The derived classes will
+share the interfaces of their parents but of course provide specific
+instatiation of the functionality.
+
+
+In a program using Scene, each specific model class to be used is
+instantiated only once and then a pointer to that class is passed
+around as needed. There will be just one motion model,
+zero, one or several feature measurement models (several if there is more
+than one type of feature of which it is possible to make
+measurements), and then optionally one internal measurement model. (In
+future versions of Scene it is planned to increase generality by
+providing greater choice here.) The specific model classes need to be 
+defined by the creator of a new Scene application, and then
+instantiated in a program so that pointers can be passed to Scene's
+main classes which will make use of the models' functions to perform
+calculations.
+
+
+Functions in model classes are used in a uniform way. A function named {\tt
+func\_A\_and\_B(C, D)} calculates the result vectors or matrices {\tt
+A} and {\tt B} from input vectors or matrices {\tt C} and {\tt D}. The
+results will be stored in pre-allocated spaces {\tt CRES} and {\tt DRES}
+in the model classes, from which they should be copied promptly after
+calling the function.
+
+Several of the functions in model classes calculate Jacobians. A
+Jacobian is a matrix of derivatives of one vector with respect to the
+other. If vector $\veca(\vecb)$ is a function of vector $\vecb$,
+the Jacobian $\pdiff{\veca}{\vecb}$ is defined as follows:
+\beq
+\pdiff{\veca}{\vecb} = \matfour{\pdiff{a_1}{b_1} & \pdiff{a_1}{b_2}  & \pdiff{a_1}{b_3}  & \ldots}
+{\pdiff{a_2}{b_1}  &\pdiff{a_2}{b_2}   &\pdiff{a_2}{b_3}   & \ldots}
+{\pdiff{a_3}{b_1}  & \pdiff{a_3}{b_2}  &\pdiff{a_3}{b_3}   & \ldots}
+{\vdots       & \vdots         & \vdots         & }
+\eeq
+
+In the following detailed look at each of the types of model class,
+vectors and matrices are named as they appear in plain text form
+within the source code of Scene: thus $\vecx_v$ for example becomes
+{\tt xv}.
+
+\subsection{Defining a Motion Model}
+
+Two levels of derivation are used with motion models. From the base
+class {\tt Motion\_Model}, motion model classes specific to a
+particular dimensionality of movement {\tt OneD\_Motion\_Model}, {\tt
+TwoD\_Motion\_Model} are {\tt ThreeD\_Motion\_Model} are
+derived (again defined in the file {\tt
+SceneLib/Scene/models\_base.h}). One of these should then be used as the parent for a specific
+motion model to describe a particular system.
+
+In a specific motion model class, the following constants must be defined:
+
+\be
+\item {\tt STATE\_SIZE}, the integer state vector size.
+\item {\tt CONTROL\_SIZE}, the integer control vector size.
+\ee
+And the following functions:
+\be
+\item {\tt func\_fv\_and\_dfv\_by\_dxv(xv, u, delta\_t)}, the main motion
+model function (process equation) which calculates a new state {\tt fv} as a function of the old
+state {\tt xv}, control vector {\tt u} and time interval {\tt
+delta\_t}. Also calculates the Jacobian {\tt dfv\_by\_dxv}.
+\item {\tt func\_Q(xv, u, delta\_t)}, which forms the covariance
+matrix {\tt Q} of the process noise associated with {\tt fv}.
+\item {\tt func\_xp(xv)}, the function which defines the position
+state {\tt xp} in terms of {\tt xv}.
+\item {\tt func\_dxp\_by\_dxv(xv)} which is the Jacobian for {\tt func\_xp}.
+\item {\tt func\_fv\_noisy(xv\_true, u\_true, delta\_t)}, a noisy
+version of the process equation which is used in simulation only to 
+This function should follow the same basic form as
+{\tt func\_fv\_and\_dfv\_by\_dxv} but incorporate random noise to represent
+uncertainty in the model.
+\item {\tt
+func\_xvredef\_and\_dxvredef\_by\_dxv\_and\_dxvredef\_by\_dxpdef(xv,
+xpdef)} specifies how to redefine the robot state {\tt xv} to {\tt
+xvredef} when axes are redefined such that {\tt xpdef}, a given
+position state, becomes the new zero of coordinates.
+\ee
+
+These should optionally be defined depending on the system:
+
+\be
+\item {\tt func\_xvnorm\_and\_dxvnorm\_by\_dxv(xv)}, a function which
+defines how to {\bf normalise} the parameters in {\tt xv}, forming a
+new state {\tt xvnorm}.
+\item {\tt navigate\_to\_waypoint(xv, xv\_goal, u, delta\_t)}, which
+can be used in systems with control parameters to set them
+automatically with the aim of reaching a goal state {\tt xv\_goal}.
+\ee
+
+
+\subsection{Defining a Feature Measurement Model}
+
+With feature measurement models, two levels of derivation are again
+used. From the base class {\tt Feature\_Measurement\_Model}, models
+specific to particular geometrical feature types are derived like {\tt
+Point\_Feature\_Measurement\_Model} and {\tt
+Line\_Feature\_Measurement\_Model} (in {\tt
+SceneLib/Scene/models\_base.h)}. Then a specific feature measurement
+model class should be derived from one of these types.
+
+In a specific feature measurement model class, the following constants need to
+be defined:
+\be
+\item {\tt MEASUREMENT\_SIZE}, the number of parameters representing a
+measurement of the feature.
+\item {\tt FEATURE\_STATE\_SIZE}, the number of parameters to
+represent the state of the feature.
+\ee
+
+And the following functions:
+
+\be
+
+\item {\tt func\_yipose\_and\_Pyiyipose(yi, Pyiyi)}, a function which
+takes the state and covariance of the feature and calculates its {\bf
+pose state}: this is the basic representation of that geometrical
+feature type. This function is used for graphics only.
+\item {\tt func\_yi\_and\_dyi\_by\_dxp\_and\_dyi\_by\_dhi\_and\_Ri(hi,
+xp)}, the feature initialisation function and its Jacobians, which
+calculates a feature's state {\tt yi} from a measurement {\tt hi}
+and the robot position state {\tt xp}.
+\item {\tt func\_hi\_and\_dhi\_by\_dxp\_and\_dhi\_by\_dyi(yi, xp)},
+the main measurement function and its Jacobians, which calculates a
+measurement {\tt hi} from the feature state {\tt yi} and the robot
+position state {\tt xp}.
+\item {\tt func\_Ri(hi)}, which calculates the covariance {\tt Ri} of
+the measurement noise for measurement {\tt hi}.
+\item {\tt func\_nui(hi, zi)}, a function which calculates the
+innovation {\tt nui} of a measurement with predicted value {\tt hi}
+and actual value {\tt zi}. Normally this function should  perform the
+simple subtraction {\tt nui} $=$ {\tt zi} $-$ {\tt hi} but the
+function is left as user-definable because in some cases that is not
+the case: for instance, if a measurement parameter is an angle in the
+range $-\pi \rightarrow \pi$, cases where {\tt zi} and {\tt hi} lie
+either side of $\pi$ would give an incorrectly large innovation if a
+simple subtraction was performed: in this case the user-defined
+innovation function can normalise the angle to the $-\pi \rightarrow
+\pi$ range.
+\item {\tt func\_hi\_noisy(yi\_true, xp\_true)}, a noisy measurement
+function for use in simulation, producing a measurement with random
+noise added.
+\item {\tt
+func\_zeroedyi\_and\_dzeroedyi\_by\_dxp\_and\_dzeroedyi\_by\_dyi(yi,
+xp)}, a function which defines how to redefine the state of a feature
+in the case of a redefinition of axes. The position state {\tt xp} at
+which the axes are to be redefined is given, and a new feature state
+{\tt zeroedyi} is calculated from the current value {\tt yi}, plus the
+relevant Jacobians.
+\item {\tt visibility\_test(xp, yi, xp\_orig, hi)}, which is used in
+active selection of measurements to decide whether the feature should
+be attempted to be measured from robot position {\tt xp}. As well as
+the feature state {\tt yi} and current predicted measurement {\tt hi},
+the position state {\tt xp\_orig} of the robot when the
+feature was first observed is passed. A criterion for the
+expected measurability of the feature should be defined based on these
+relative positions: for instance, if with vision we are attempting to match a
+template patch via image correlation matching, success could only be expected from
+within a limited range of robot motion away from the position from
+which the feature was first seen and the template stored.
+This function is different from other model functions in that it
+returns a single integer value representing success (0) or failure
+(other value).
+\item {\tt selection\_score(Si)} is a function which calculates a
+score for a feature representing its value for immediate measurement
+based on the innovation covariance {\tt Si}. This criterion will be
+used within Scene to compare candidate measurements of
+different features and allow resources to be devoted to where they are
+most useful. In general, measurements with a high {\tt Si} should be
+favoured because it makes sense to  make a measurement of a feature where
+the result is uncertain rather than of one where it is possible to
+accurately predict the result.
+
+\ee
+
+\subsection{Defining an Internal Measurement Model}
+
+The derivation hierarchy for internal measurement models does not have
+any intermediate steps and all specific models should be derived
+directly from the base class {\tt Internal\_Measurement\_Model}. 
+The constants and functions which must be defined for an internal
+measurement model are very similar to those for a feature measurement
+model. Note however, the important difference that while a feature
+measurement model depends only on robot position state and is thus
+potentially compatible with many different motion models, an internal
+measurement model is specific to a particular motion model.
+
+The following constant must be defined:
+
+\be
+\item {\tt MEASUREMENT\_SIZE}, the number of parameters in the
+measurement vector.
+\ee
+
+And the following functions:
+
+\be
+\item {\tt func\_hv\_and\_dhv\_by\_dxv(xv)}, the measurement function
+calculating measurement {\tt hv} and Jacovian {\tt dhv\_by\_dxv} from
+the robot state {\tt xv}.
+\item {\tt func\_Rv(hv)}, which calculates measurement noise {\tt Rv}
+from predicted measurement {\tt hv}.
+\item {\tt func\_nuv(hv, zv)}, which calculates the innovation {\tt
+nuv} from predicted measurement {\tt hv} and actual measurement {\tt zv}.
+\item {\tt func\_hv\_noisy(xv\_true)}, the noisy measurement function
+for use in simulation.
+\item {\tt feasibility\_test(xv, hv)}, which calculates the 
+feasibility of the measurement based on the current robot state {\tt
+xv} and predicted measurement {\tt hv}. Analogous to function {\tt
+visibility\_test} in feature measurement models, this function returns
+0 if the measurement is possible.
+\ee
+
+\section{Conclusion}
+
+We have discussed the meaning of making mathematical models of
+real-world systems, and shown how model classes should be defined for
+use in Scene. This document will evolve as the design of Scene
+changes, hopefully towards a more powerful generic modelling framework
+supporting systems where multiple moving objects can be equipped with
+multiple independent sensors.
+
+\bibliography{bib}
+\end{document}

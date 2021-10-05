@@ -1,0 +1,32 @@
+#---Architecture dependent stuff---
+ARCH = $(shell uname -m)
+OS = $(shell uname -s)
+
+CC = g++
+
+# External library locations
+# Change to fit where you have these libraries installed
+
+#---Horatio Libraries---
+# Change HORBASEDIR to where you have installed Horatio
+HORBASEDIR = /home/fan/Projects/CV/SLAM/Misc/horatio
+HORINCDIR = $(HORBASEDIR)/include
+HORLIBS =  -L$(HORBASEDIR)/lib-$(ARCH) -lhoratio
+
+#---XForms Libraries---
+# Usually Xforms should install itself in system directories so can
+# leave XFORMSINCDIR XFORMSLIBDIR blank
+ifeq ($(OS), Linux)
+XFORMSINCDIR = .
+XFORMSLIBDIR = .
+endif
+ifeq ($(OS), SunOS)
+XFORMSINCDIR = /data/hmc1/ajd/Sun/xforms/FORMS
+XFORMSLIBDIR = /data/hmc1/ajd/Sun/xforms/FORMS
+endif
+
+#---Libraries to be created and directories they depend on---
+# These should be listed in order, so that if one library depends
+# on another it should come after it. There should be no circular 
+# dependencies.
+LIBRARIES = Scene SceneXformsBits SceneImproc SceneHead

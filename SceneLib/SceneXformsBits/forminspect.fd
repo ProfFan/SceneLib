@@ -1,0 +1,393 @@
+Magic: 13000
+
+Internal Form Definition File
+    (do not change)
+
+Number of forms: 1
+Unit of measure: FL_COORD_PIXEL
+
+=============== FORM ===============
+Name: forminspect
+Width: 301
+Height: 391
+Number of Objects: 20
+
+--------------------
+class: FL_BOX
+type: UP_BOX
+box: 0 0 301 391
+boxtype: FL_UP_BOX
+colors: FL_DARKCYAN FL_BLUE
+alignment: FL_ALIGN_CENTER
+style: FL_NORMAL_STYLE
+size: FL_DEFAULT_SIZE
+lcol: FL_BLACK
+label: 
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: 
+callback: 
+argument: 
+
+--------------------
+class: FL_TEXT
+type: NORMAL_TEXT
+box: 140 320 140 40
+boxtype: FL_FLAT_BOX
+colors: FL_LEFT_BCOL FL_MCOL
+alignment: FL_ALIGN_LEFT|FL_ALIGN_INSIDE
+style: FL_NORMAL_STYLE
+size: FL_DEFAULT_SIZE
+lcol: FL_BLACK
+label: 
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: text_selected_covariance
+callback: 
+argument: 
+
+--------------------
+class: FL_TEXT
+type: NORMAL_TEXT
+box: 40 10 210 20
+boxtype: FL_FLAT_BOX
+colors: FL_DARKCYAN FL_MCOL
+alignment: FL_ALIGN_LEFT|FL_ALIGN_INSIDE
+style: FL_NORMAL_STYLE+FL_EMBOSSED_STYLE
+size: FL_NORMAL_SIZE
+lcol: FL_BLACK
+label:  Covariance Matrix (Norms x 1000)
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: 
+callback: 
+argument: 
+
+--------------------
+class: FL_FRAME
+type: ENGRAVED_FRAME
+box: 20 40 250 250
+boxtype: FL_NO_BOX
+colors: FL_DARKCYAN FL_COL1
+alignment: FL_ALIGN_CENTER
+style: FL_NORMAL_STYLE
+size: FL_DEFAULT_SIZE
+lcol: FL_BLACK
+label: 
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: frame_covariance
+callback: 
+argument: 
+
+--------------------
+class: FL_COUNTER
+type: SIMPLE_COUNTER
+box: 70 320 60 10
+boxtype: FL_UP_BOX
+colors: FL_COL1 FL_RED
+alignment: FL_ALIGN_LEFT
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Cell size
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: counter_cell_size
+callback: change_cell_size
+argument: 0
+  bounds: 10 1000000
+  precision: 0
+  value: 20
+  sstep: 1
+
+--------------------
+class: FL_SCROLLBAR
+type: HOR_THIN_SCROLLBAR
+box: 20 290 250 10
+boxtype: FL_EMBOSSED_BOX
+colors: FL_DARKCYAN FL_COL1
+alignment: FL_ALIGN_BOTTOM
+style: FL_NORMAL_STYLE
+size: FL_DEFAULT_SIZE
+lcol: FL_BLACK
+label: 
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: scrollbar_covariance_horizontal
+callback: scroll_covariance
+argument: 1
+	value: 0
+	step: 1.000
+	increment: 1 1
+	return: FL_RETURN_ALWAYS
+
+--------------------
+class: FL_SCROLLBAR
+type: VERT_THIN_SCROLLBAR
+box: 270 50 10 240
+boxtype: FL_EMBOSSED_BOX
+colors: FL_DARKCYAN FL_COL1
+alignment: FL_ALIGN_BOTTOM
+style: FL_NORMAL_STYLE
+size: FL_DEFAULT_SIZE
+lcol: FL_BLACK
+label: 
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: scrollbar_covariance_vertical
+callback: scroll_covariance
+argument: 0
+	value: 0
+	step: 1.000
+	increment: 1 1
+	return: FL_RETURN_ALWAYS
+
+--------------------
+class: FL_BUTTON
+type: NORMAL_BUTTON
+box: 20 300 10 10
+boxtype: FL_UP_BOX
+colors: FL_COL1 FL_COL1
+alignment: FL_ALIGN_CENTER
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: @circle
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_center
+callback: center_on_selected
+argument: 0
+
+--------------------
+class: FL_FRAME
+type: ENGRAVED_FRAME
+box: 140 320 140 40
+boxtype: FL_NO_BOX
+colors: FL_BLACK FL_DARKCYAN
+alignment: FL_ALIGN_CENTER
+style: FL_FIXED_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: 
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: 
+callback: 
+argument: 
+
+--------------------
+class: FL_BUTTON
+type: TOUCH_BUTTON
+box: 270 290 10 10
+boxtype: FL_EMBOSSED_BOX
+colors: FL_DARKCYAN FL_DARKCYAN
+alignment: FL_ALIGN_CENTER
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_COL1
+label: @3>>
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_diagonal_scroll
+callback: scroll_diagonally
+argument: 1
+
+--------------------
+class: FL_TEXT
+type: NORMAL_TEXT
+box: 165 300 90 20
+boxtype: FL_NO_BOX
+colors: FL_DARKCYAN FL_MCOL
+alignment: FL_ALIGN_LEFT|FL_ALIGN_INSIDE
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Selected covariance
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: 
+callback: 
+argument: 
+
+--------------------
+class: FL_COUNTER
+type: SIMPLE_COUNTER
+box: 70 330 60 10
+boxtype: FL_UP_BOX
+colors: FL_COL1 FL_RED
+alignment: FL_ALIGN_LEFT
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Precision
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: counter_precision
+callback: change_precision
+argument: 0
+  bounds: 1 1000000
+  precision: 0
+  value: 3
+  sstep: 1
+
+--------------------
+class: FL_BUTTON
+type: TOUCH_BUTTON
+box: 270 40 10 10
+boxtype: FL_EMBOSSED_BOX
+colors: FL_DARKCYAN FL_DARKCYAN
+alignment: FL_ALIGN_CENTER
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_COL1
+label: @7>>
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: 
+callback: scroll_diagonally
+argument: 0
+
+--------------------
+class: FL_BUTTON
+type: NORMAL_BUTTON
+box: 10 10 20 20
+boxtype: FL_UP_BOX
+colors: FL_COL1 FL_COL1
+alignment: FL_ALIGN_CENTER
+style: FL_TIMESBOLDITALIC_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: R
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_redraw_form
+callback: redraw_form
+argument: 0
+
+--------------------
+class: FL_BUTTON
+type: NORMAL_BUTTON
+box: 270 10 20 20
+boxtype: FL_UP_BOX
+colors: FL_COL1 FL_COL1
+alignment: FL_ALIGN_CENTER
+style: FL_NORMAL_STYLE
+size: FL_DEFAULT_SIZE
+lcol: FL_BLACK
+label: @square
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_close
+callback: hide_form
+argument: 0
+
+--------------------
+class: FL_ROUNDBUTTON
+type: PUSH_BUTTON
+box: 70 350 20 20
+boxtype: FL_NO_BOX
+colors: FL_MCOL FL_YELLOW
+alignment: FL_ALIGN_BOTTOM
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Vol
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_norm_volume
+callback: switch_norm_type
+argument: 1
+
+--------------------
+class: FL_ROUNDBUTTON
+type: PUSH_BUTTON
+box: 90 350 20 20
+boxtype: FL_NO_BOX
+colors: FL_MCOL FL_YELLOW
+alignment: FL_ALIGN_BOTTOM
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Frob
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_norm_frobenius
+callback: switch_norm_type
+argument: 2
+
+--------------------
+class: FL_ROUNDBUTTON
+type: PUSH_BUTTON
+box: 110 350 20 20
+boxtype: FL_NO_BOX
+colors: FL_MCOL FL_YELLOW
+alignment: FL_ALIGN_BOTTOM
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Trace
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_norm_trace
+callback: switch_norm_type
+argument: 3
+
+--------------------
+class: FL_TEXT
+type: NORMAL_TEXT
+box: 10 355 50 10
+boxtype: FL_FLAT_BOX
+colors: FL_DARKCYAN FL_MCOL
+alignment: FL_ALIGN_CENTER|FL_ALIGN_INSIDE
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Norm type   
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: 
+callback: 
+argument: 
+
+--------------------
+class: FL_ROUNDBUTTON
+type: PUSH_BUTTON
+box: 50 350 20 20
+boxtype: FL_NO_BOX
+colors: FL_MCOL FL_YELLOW
+alignment: FL_ALIGN_BOTTOM
+style: FL_NORMAL_STYLE
+size: FL_TINY_SIZE
+lcol: FL_BLACK
+label: Hinf
+shortcut: 
+resize: FL_RESIZE_ALL
+gravity: FL_NoGravity FL_NoGravity
+name: button_norm_hinf
+callback: switch_norm_type
+argument: 0
+	value: 1
+
+==============================
+create_the_forms

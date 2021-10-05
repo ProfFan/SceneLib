@@ -1,0 +1,68 @@
+# Copyright 1993 Philip F. McLauchlan (pm@robots.oxford.ac.uk)
+#                Robotics Research Group, Oxford University.
+SHELL = \bin\sh
+INCDIR = ..\include
+HFILEDIR = $(INCDIR)\horatio
+INCLUDE = $(HFILEDIR)\global.h
+HFILES1 = def.h error.h types.h ralloc.h talloc.h text_io.h
+HFILES2 = bit_arr.h inmos.h ring_buf.h number.h compress.h
+
+#---PC stuff---
+
+#---compilation options---
+CC = cl
+CFLAGS = -c -AL
+
+#---files---
+LIB = ..\lib-486\horatio.lib
+OFILES = error.obj ralloc.obj talloc.obj text_io.obj bit_arr.obj number.obj compress.obj
+
+#---make rules---
+.c.obj:
+	$(CC) $(CFLAGS)  $<
+	lib $(LIB) -+$*.obj, ,
+
+$(LIB): $(OFILES)
+	del *.obj
+
+#---transputer stuff---
+
+#---compilation options---
+TCOFLAGS = /t800 /j $(INCDIR) /DHOR_TRANSPUTER
+.SUFFIXES: .tio .trd
+
+#---files---
+TRANS_LIB_STDIO = ..\lib-T800\glob_io.lib
+TRANS_LIB_STDRD = ..\lib-T800\glob_rd.lib
+TCOFILES_IO = error.tio ralloc.tio talloc.tio bit_arr.tio \
+	      inmos.tio ring_buf.tio number.tio text_io.tio compress.tio
+TCOFILES_RD = error.trd ralloc.trd talloc.trd bit_arr.trd \
+	      inmos.trd ring_buf.trd number.trd text_io.trd compress.trd
+
+#---make rules---
+T800: $(TRANS_LIB_STDIO) $(TRANS_LIB_STDRD)
+
+$(TRANS_LIB_STDIO): $(TCOFILES_IO)
+	ilibr $(TCOFILES_IO) /o $(TRANS_LIB_STDIO)
+	del *.tio
+
+$(TRANS_LIB_STDRD): $(TCOFILES_RD)
+	ilibr $(TCOFILES_RD) /o $(TRANS_LIB_STDRD)
+	del *.trd
+
+.c.tio:
+	icc $* $(TCOFLAGS) /o $*.tio
+
+.c.trd:
+	icc $* $(TCOFLAGS) /DHOR_REDUCED_LIB /o $*.trd
+
+$(OFILES) $(TCOFILES_IO) $(TCOFILES_RD): $(INCLUDE)
+
+#---library include file rule---
+$(INCLUDE): $(HFILES1) $(HFILES2) Makef_pc
+	cat $(HFILES1) > temp1
+	cat $(HFILES2) > temp2
+	cat temp1 temp2 > $(INCLUDE)
+	del temp1
+	del temp2
+

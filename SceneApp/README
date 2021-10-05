@@ -1,0 +1,247 @@
+SceneApp: Applications Using the Scene Library
+----------------------------------------------
+
+See latest documentation here and at http://www.robots.ox.ac.uk/~ajd/Scene/
+
+Time-stamp: <01/06/12 21:18:26 ajd>
+
+Andrew Davison
+University of Oxford / Electrotechnical Laboratory, Japan.
+ajd@robots.ox.ac.uk
+
+http://www.robots.ox.ac.uk/~ajd/Scene/
+
+-------------------------------------------------------------------------------
+
+README Contents
+---------------
+
+1. Introduction
+2. License
+3. SceneApp Directory Contents
+4. Installation
+5. Recent changes
+6. Notes
+
+-------------------------------------------------------------------------------
+
+1. Introduction
+
+This package contains applications which use the Scene Library for
+localisation and map-building, which should be available from the same
+location as SceneApp.
+
+SceneApp Releases will carry the same release numbers as SceneLib and
+probably optimally matching numbers should be used together --- though
+things may well be OK otherwise.
+
+See the html file sceneapp.html in this directory for an introfuction to 
+all these programs.
+
+-------------------------------------------------------------------------------
+
+2. License
+
+SceneApp is released under the GNU General Public License (GPL). The
+basic terms of this license are that you are free to redistribute
+and/or modify this software provided that redistributed or modified
+versions fall under the same terms: you must make them freely
+available with source code. That is not to say that you cannot charge
+for this software: as with the Linux kernel, which is also licensed
+under the GPL, you can charge for its distribution as long as it is
+also available for free with source code.
+
+The GPL states that any software which is derived from or uses any
+part of the SceneApp code is itself bound by the GPL and must be
+released freely with source code.
+
+See the file LICENSE for full details.
+
+Please note the differences between the GNU Lesser General Public
+License under which SceneLib is released and the GNU General Public
+License which applies to the SceneApp applications package.
+
+    SceneApp: applications for sequential localisation and map-building
+    Copyright (C) 2000 Andrew Davison
+    ajd@robots.ox.ac.uk
+    Scene home page: http://www.robots.ox.ac.uk/~ajd/Scene/
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-------------------------------------------------------------------------------
+
+3. SceneApp Directory Contents
+
+ETLRobot
+	Dual-mode robot/simulation program for navigation of ETL's
+	Nomad-like robot using measurements from stereo active vision.
+
+ETLDouble
+	Double robot simulation based on ETLRobot. One seeing robot is
+	accompanied by a blind assistant. The seeing robot can make
+	visual measurements of the assistant to improve its position
+	estimation.
+
+OneD
+	A one-dimensional simulator which demonstrates properties of
+	map-building very clearly.
+
+Camera
+	Experimental implementation of a real-time map-building system 
+	for a single agile camera.
+
+Makefile
+	Master Makefile which compiles all applications.
+
+README
+	This file
+
+-------------------------------------------------------------------------------
+
+4. Installation
+
+SceneApp's simulations are precompiled for Linux (kernel 2.0 and up).
+
+If you wish to actually modify and compile the sources, you will need
+to have also installed and compiled the SceneLib package where sources
+for the main part of the system common to all applications are
+stored. See SceneLib/README for compilation instructions. Then,
+arrange your directories so that SceneLib/ and SceneApp/ are both
+subdirectories of the same parent: the Makefiles in SceneApp/ are set
+up so that by default they will look for the SceneLib libraries as if
+they are in this configuration; though this can straightforwardly be
+changed if neccesary by changing the variable SCENEBASEDIR in the
+application Makefiles.
+
+	To make all the applications do:
+
+	cd SceneApp/
+	make
+
+	in the main SceneApp directory.
+	Executable files scenesim and/or scenerob will be generated in each 
+	of the Application directories.
+
+Some details about compilation:
+
+Makefiles: many common compilation commands and definitions are
+provided by the general makefiles in SceneLib/make/, such as automatic
+dependency generation and clean commands in Makefile.app.master and
+make/Makefile.app.options which defines the locations of libraries used
+and some other variables --- these should be changed if necessary to
+where they are installed on a particular system.
+
+A specific application Makefile should define SCENEBASEDIR, then
+include Makefile.app.options at the top and Makefile.app.master at the
+bottom. See any of the applications in SceneApp for an example.
+
+
+Common libraries used:
+
+The Scene Library and sometimes other libraries SceneXFormsBitsLib,
+SceneImprocLib and SceneHeadLib in the SceneLib distribution.
+
+Horatio (old version) for matrices, images and 3D tool.
+
+Xforms for graphical interface.
+
+General X libraries.
+
+The application Makefiles include make/Makefile.options at the top
+and make/Makefile.master at the bottom. Between these, they define:
+
+CFLAGS                 compilation options common to simulation and robot modes
+ROBCFLAGS              options for robot mode
+SIMCFLAGS              options for simulation mode
+
+LINKFLAGS              linking options common to simulation and robot modes
+ROBLINKFLAGS           linking options for robot mode
+SIMLINKFLAGS           linking options for simulation mode
+
+COMMONCSOURCEFILES     simulation / robot independent source files
+COMMONCCSOURCEFILES
+
+ROBONLYCSOURCEFILES    robot-specific source files
+ROBONLYCCSOURCEFILES
+
+SIMONLYCSOURCEFILES    simulation-specific source files
+SIMONLYCCSOURCEFILES
+
+ROBSIMCCSOURCEFILES    source files which compile to both robot and simulation
+                       versions
+
+Support is provided for dual compilation into robot and simulation
+modes: this means that any application for interacting with robot or
+other hardware can also be run in simulation mode. This may require
+the use of robot / simulation specific source files, compilation of
+which is controlled by the variables above. ROBSIMCCSOURCEFILES are
+special source files which compile into two versions depending on
+whether the compile flag _ROBOT_ is defined: see ETLRobot/control.cc
+for an example. Using #ifdef _ROBOT_ statements it is possible to
+define which parts of the code go into which version, while making
+sure that sharing of most of the code is possible.
+
+-------------------------------------------------------------------------------
+
+6. Recent changes
+
+Changes for version 0.81 (June 11 2001) CVS tag rel-0-81
+--------------------------------------------------------
+
+Compiles on RedHat 7.1
+Resurrected analyse for ETLRobot; slightly generalised;
+	functions for filling/reading total simulation state.
+Camera now working with test image sequence (known waypoints)
+Camera now working in simulation
+ETLRobot 3D mode now fully working with feature measurements.
+ETLRobot/models_nomad.h has waypoint navigation.
+
+Changes for version 0.80 (2001/02/07) CVS tag rel-0-80
+------------------------------------------------------
+
+New experimental 3D implementation in ETLRobot.
+
+Changed applications so they work with Joss's new stuff SceneInspect, etc.
+and made various other changes.
+- Zero axes button
+- Now use new Waypoints Class
+- Use new functions in models for zeroing.
+- Makefiles: now make distrib command for distribution with static binaries
+
+Changes for version 0.71 (2000/10/07) CVS tag rel-0-71
+------------------------------------------------------
+
+- Moved SceneApp/make to SceneLib
+
+Changes for version 0.70 (2000/10/04) CVS tag rel-0-70
+------------------------------------------------------
+
+- Split Application distribution from main library
+- Created new libraries SceneHead and SceneImproc
+
+-------------------------------------------------------------------------------
+
+6. Notes
+
+- For the graphical interfaces, I have used XForms
+(http://bragg.phys.uwm.edu/xforms), which is a very nice, free
+user-interface creator which should work with any sort of XWindows I
+think. You get an interactive designer, where you can create and drag
+buttons, sliders and stuff, and it produces C code which you can just
+slot into programs.
+
+Files form***.c were directly generated by this designer, and these
+are the C code generated to represent user interface windows. 
+

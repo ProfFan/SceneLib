@@ -1,0 +1,683 @@
+SceneLib: The Scene Library
+---------------------------
+Software for sequential localisation and map-building.
+
+See latest documentation here and at http://www.robots.ox.ac.uk/~ajd/Scene/
+
+Time-stamp: <01/06/12 21:18:43 ajd>
+
+Andrew Davison
+University of Oxford
+ajd@robots.ox.ac.uk
+
+http://www.robots.ox.ac.uk/~ajd/Scene/
+
+With contributions from:
+
+Nokuyuki Kita
+Intelligent Systems Institute, AIST
+n.kita@aist.go.jp
+
+Joss Knight
+University of Oxford
+joss@robots.ox.ac.uk
+
+-------------------------------------------------------------------------------
+
+README Contents
+---------------
+
+1. Introduction
+2. License
+3. SceneLib Directory Contents
+4. Installation
+5. General Documentation
+6. Changes History
+7. Known Bugs
+
+-------------------------------------------------------------------------------
+
+1. Introduction
+ 
+The ongoing goal of Scene is to create a general software framework
+for sequential estimation of the positions of moving bodies and the
+objects of which they are able to make sensor observations in the
+environment.
+
+This software has evolved gradually but significantly from an original
+system for robot navigation, specific to one robot. Its generalisation
+was driven by the need and desire to apply the many transferrable
+components to various problems in computer vision and robotics. A need
+for modular design of the approaches to modelling the real world soon
+became clear. Scene now attempts to offer the following two orthogonal
+axes of flexibility as its main contribution:
+
+1. Flexibility with respect to application domain, provided by a modular
+   approach to modelling.
+2. Flexibitily with respect to algorithm choice, provided by multiple
+   filtering methods.
+
+By saying that these two domains of flexibility are orthogonal, we
+mean that it is possible to make changes in one domain without
+affecting the other: with a given model represeting a certain robot,
+it should be trivial to switch between different map-building
+algorithms; conversely, a given algorithm can quickly be implemented
+using any robot system for which a model is available.
+
+We believe that this type of design both enables and is supported by
+an open-source approach to software distribution. The flexibility
+means that hopefully the software will be useful to a wide range of
+people with different robot systems or implementational goals, while
+it is hoped that these users will be able contribute in turn to the
+code base and make the system even more widely applicable.
+
+Download the SceneApp package for sample applications which use the Scene
+Library.
+
+For general information on the theory behind this software, and
+sequential map-building and localisation in general, please download
+the paper "Sequential Localisation and Map-Building in Computer Vision
+and Robotics" available at:
+http://www.robots.ox.ac.uk/~ajd/Papers/davison_kita_smile2000.ps.gz
+(presented at the workshop on Structure and Motion in Large-Scale
+Environments (SMILE) at ECCV 2000 and published in the Spinger-Verlag
+LNCS series).
+
+-------------------------------------------------------------------------------
+
+2. License
+
+SceneLib is released under the GNU Lesser General Public License
+(LGPL). The basic terms of this license are that you are free to
+redistribute and/or modify this software provided that redistributed
+or modified versions fall under the same terms: you must make them
+freely available with source code. That is not to say that you cannot
+charge for this software: as with the Linux kernel, which is licensed
+under the GPL, you can charge for its distribution as long as it is
+also available for free with source code.
+
+The special feature of the LGPL which differs from the GPL is that it
+is permitted to produce and distribute an end product which consists
+of this software linked with other proprietry software which need not
+fall under the same license terms. That is to say that since SceneLib
+is a library rather than an end product it is possible to use it as
+part of a proprietry, closed-source end product. (Another example of
+software which is licensed under the LGPL is glibc, the GNU C library
+of all those functions like printf(), which itself is freely
+distributed but can be used in proprietry software.) Nevertheless,
+source code for SceneLib itself along with any modifications you make
+to it must be freely distributed if any end product using it is
+created.
+
+See the file LICENSE for full details.
+
+Please note the differences between the GNU Lesser General Public
+License under which SceneLib is released and the GNU General Public
+License which applies to the SceneApp applications package.
+
+    Scene: software for sequential localisation and map-building
+    Copyright (C) 2000 Andrew Davison
+    ajd@robots.ox.ac.uk
+    Scene home page: http://www.robots.ox.ac.uk/~ajd/Scene/
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-------------------------------------------------------------------------------
+
+3. SceneLib Directory Contents
+
+SceneLib currently consists of source directories Scene***/, each of
+which is compiled into a library of the same name, and a directory
+Docs/ with documentation in LaTeX form.
+
+The core library is Scene, which provides all the main support for
+map-building applications.
+
+The SceneImproc library contains some image processing functions such
+as correlation and searching which may be of general use.
+
+The SceneHead library provides some functions specific to active
+robotic heads (the subject of much of the research this software was
+designed for).
+
+The SceneXFormsBits library contains some tools specific to the XForms
+user interface library which is used in some of the sample
+applications. Note that SceneLib does not depend on XForms and can be
+used without it.
+
+Docs/	
+	models.tex:
+	Detailed information on the use of mathematical models in
+	Scene, and explanation of the procedure needed to apply Scene
+	to a new application.
+
+Scene/
+	models_***.cc:
+	Contains model classes for the robot motion and feature measurement.
+	The abstract base classes Motion_Model and Feature_Measurement_Model
+	are parents to specific models. 
+	motion_model.[ps,jpg], feature_model.[ps,jpg]:
+	Diagrams explaining the derivation hierarchies for models.
+
+	scene***.cc:
+	feature.cc:
+	Contains the Scene class hierarchy, which keeps estimates of the 
+	states of robot and feature positions. 
+
+	kalman.cc:
+	The Kalman class contains the functions and data to perform updates
+	on the data stored in Scene.
+
+	sim_or_rob.cc:
+	simul.cc:
+	Provides the capability to compile all applications in a simulation
+	mode as well as their real mode, and noisy simulation of the robot 
+	and its environment when we want to run in simulation mode. Contains 
+	the Simulation class.
+
+	3d.cc:
+	Contains the Three_D_Display class which looks after things for the
+	3D Tool display from Horatio (in the hope that something
+        else could possibly be substituted in future with the same
+	class interface). This is the only file I always get some 
+	warnings from gcc with when compiling (something about enum)
+	but nothing to worry about.
+
+	control_general.cc:
+	Contains some generally-applicable functions for controlling these
+	classes which can be called from inidividual application programs.
+
+	waypoint.cc:
+	A waypoints class for storing information about navigation targets.
+
+	postscript.cc:
+	The Postscript class for outputting postscript diagrams showing map 
+	and robot estimates.
+
+	bits.cc
+	Some little bits used by the rest (mostly extensions to Horatio
+	matrices).
+
+SceneXFormsBits/
+	formbrowser.c:
+	waypoint_browser.cc:
+	A graphical tool for the manipulation of waypoints: intermediate goals
+	set for a robot during navigation.
+
+	forminspect.c
+	scene_inspect.cc:
+	A graphical tool for interactively visualising covariance matrices.
+
+	formkalman.c
+	kalman_form.cc
+	A graphical tool for interacting with Kalman filtering parameters.
+
+SceneImproc/
+	correlate.cc:
+	Functions for image correlation.
+
+	improc.cc:
+	Functions for image searching and detection of features of interest.
+
+SceneHead/
+	head.cc
+	Contains Head, a class providing functions for calculations based 
+	on the geometry of a pan-tilt-verge active robotic head.
+
+	models_head.cc
+	Model classes for making measurements of features with an active head.
+
+Makefile
+	Master Makefile
+
+make/
+	Makefile components which are used by all the subdirectories.
+	Each Makefile in a subdirectory should include:
+
+	../make/Makefile.lib.options	at the top
+	../make/Makefile.lib.master		at the bottom
+
+	And define:
+	SOURCES				a list of .cc or .c source files
+	EXTRAHEADERS			additional header files if they
+					exist (.h files with the same root
+					as .cc or .c files in SOURCES need
+					not be specified)
+
+include/
+libs/
+	After compilation, include and library files appear here.
+
+-------------------------------------------------------------------------------
+
+4. Installation
+
+The libraries in SceneLib can all be compiled by typing 'make' in the
+main SceneLib directory. 
+
+Scene currently depends on Horatio, Philip Mclauchlan's libraries for
+vision applications, and the location at which Horatio is installed
+must be specified in make/Makefile.lib.options
+
+Horatio is mirrored on the Scene home page.
+
+To compile the tools in SceneXFormsBits (graphical interface tools)
+XForms must be installed, and if necessary the locations of its header
+and library files specified in make/Makefile.lib.options (by default
+XForms installs itself in standard directories and so nothing needs to
+be done here).
+
+XForms is available from http://world.std.com/~xforms/
+
+After compilation, library files corresponding to the library source
+directories will be found in the lib/ directory, while header files
+will be found in the include/ directory.
+
+See the SceneApp package for example applications which use the
+SceneLib libraries.
+
+-------------------------------------------------------------------------------
+
+5. General Documentation
+
+Models Hierarchy --- representing the types of objects in the world
+-------------------------------------------------------------------
+
+The model classes in SceneLib/Scene/models_***.h specify robot motion
+models and feature measurement models (in terms of functions and
+Jacobians as in Kalman Filter language). The scene class has a
+particular vehicle motion model attached to it, and then each feature
+has a feature measurement class attached. A lot of calculation work is
+done tidily within these classes. In a program, for efficiency there
+should only be one instantiation of each specific type of relevant
+model. A pointer to one of these classes is then what is referred to
+by each feature or by the robot. Access to the functionality of the
+model classes follows a standard pattern of public member functions of
+a form like: func_a_and_b(c, d). This is a function taking arguments c
+and d (usually matrices) and producing results a and b. The results
+are written into results spaces called aRES and bRES from where they
+can be copied after the calculation. Note that it is advisable to copy
+these results immediately after the calculation  has finished since
+another call to a model function could overwrite them.
+
+There are three types of model used: Motion_Model,
+Feature_Measurement_Model and Internal_Measurement_Model.  The base
+classes are found in SceneLib/Scene/models_base.cc. This is not yet
+really a general modelling scheme, and is something which would like
+to generalise in the future, but represents a good basis for modelling
+a robot and its sensors independently. A specific application will
+define its own model classes which are derived from these.
+See the diagrams Scene/Class/motion_models.[ps,jpg] and
+Scene/Class/feature_models.[ps,jpg] for a visual representation of the
+Motion_Model and Feature_Measurement_Model hierarchies.
+
+A Motion_Model models how a robot (in the very general sense of a moving
+platform with sensors) moves in response to control inputs.
+
+A Feature_Measurement_Model models how a particular type of feature is 
+measured by the robot's sensors.
+
+An Internal_Measurement_Model represents measurements which the robot
+is able to make which depend just on its state, not features. An example
+in the Double_Robot case is a measurement made of the position of one robot
+by the other.
+
+From the Motion_Model base class are derived the dimension-type
+classes OneD_Motion_Model and TwoD_Motion_Model (with
+ThreeD_Motion_Model obviously planned for future implementation). What
+ever the specifics of the robot in question, knowing which
+dimensionality if moves in allows in particular a minimal state
+representation of it's position in this dimension to be represented
+here. Measurements of the location of features, and the process of
+drawing a representation of the robot's postion in a graphical
+display, for instance, depend only on this rather than the potentially
+more complicated specific state representation, so we define this
+here.
+
+Specific motion models are then derived from the dimension-type
+classes. These specific motion models can have state and control
+vectors of any size.
+
+In a similar way, from the Feature_Measurement_Model base class we
+derive dimension-type classes such as Point_Feature_Measurement_Model,
+from which specific measurement models reflecting the particular
+behaviour of sensors are derived in turn.
+
+Scene Class Hierarchy --- storing estimates of the state of the world
+---------------------------------------------------------------------
+
+The Scene class hierarchy is where the estimated positions of the
+vehicle and features are stored, along with their uncertainties. A
+Scene object can be thought of as a snapshot estimation of the state
+of the world as the robot knows it at a given time.
+
+Within Scene, a Feature object is used for each scene feature
+stored, and a linked list of the features stored is kept. The
+Matrix_Block class holds a matrix chunk and these are used in linked
+lists to store the big covariance matrix (only the top-right half of
+it since it's symmetrical) relating the uncertaties in all the
+features.
+
+Scene itself is a base class providing an interface to the map storage
+functionality. The kind of interfaces it provides are for instance the
+ability to add and delete features from the map, tag features as 
+"selected" for measurements, and output data on robot and feature
+estimates. 
+
+Derived from Scene are specific classes which can take different
+approaches to storing map data. The standard type is Scene_Single,
+which stores all features known about in a single state vector and
+large fully-coupled covariance matrix. This is suitable for a normal
+SLAM approach to map-building.
+
+The only other type so far implemented (and only currently partially
+so), is based on Leonard and Feder's DSM (Decoupled Stochastic
+Mapping) idea, and is therefore a representation of a group of
+decoupled submaps of features.  This is an experimental
+implementation, defining a Scene_DSM class which is interfaced in the
+same way as the Scene_Single class. Submaps are added as necessary to
+tile the area the robot moves through regularly. The size of submaps
+is set by the vector bounding_box_size passed to the Scene_DSM
+constructor. In this vector, which has the dimension of the motion
+model's POSITION_STATE_SIZE, sizes are given for spatial elements
+which angles should be set to zero.  The current submap is set
+depending on the robot's position. Features in a certain submap can
+lie outside of its boundaries, but the robot can only measure those
+features belonging to its current submap.
+
+The Kalman Class --- updating estimates of the state of world
+-------------------------------------------------------------
+
+The Kalman class is currently where filtering calculations, changing
+robot and map estimates in response to motion and measurements,
+actually take place.
+
+At the moment, different filtering styles are supported through a
+switching style. This has been chosen rather than class derivation
+since when testing different filters it is necessary to compare them,
+and with this method we can perform parallel updates with two types at
+once. Nevertheless, this may change soon.
+
+The most basic type is the "slow" filter which implements a Kalman
+update in the most obvious way, dealing with large matrices. The
+alternative "fast" method achieves the same results but with more
+though applied to which parts of matrices are interacting and with for
+instance prior allocation of heavily used matrices. 
+
+Also currently implemented are the "JGHK" and "Nebot" filters,
+involving approximation to achieve increased performance.
+
+The Simulation Class --- simulating the world
+---------------------------------------------
+
+The Three_D_Display Class --- displaying the state of the world
+---------------------------------------------------------------
+
+Identifying Features
+--------------------
+
+In Scene, each Feature object has a (void *) type identifier.
+In simulation, this will be a pointer to the int label of the feature
+In robot mode, this will be a pointer to the Hor_Image patch (for 
+	a point feature) or other real-world identifier.
+
+-------------------------------------------------------------------------------
+
+6. Changes History (read in reverse order!)
+
+Changes for version 0.81 (June 11 2001) CVS tag rel-0-81
+--------------------------------------------------------
+
+Compiles on RedHat 7.1
+Added some automatic documentation to SceneLib/Scene/scene_base.h
+Added postscript output support in Scene/postscript.h
+3D head point feature measurement class in SceneHead/models_head.h.
+Made 3D head point class and 2D both children of 
+	Head_Point_Feature_Measurement_Model.
+
+Changes for version 0.80 (2001/02/07) CVS tag rel-0-80
+------------------------------------------------------
+
+Joss's bugfixes to Scene/kalman.cc total_update_filter_fast() 
+and Scene/bits.cc hor_matq_inv_any().
+Changed hor_trace in Scene/bits.cc so it actually calculates trace!
+Fixed bugs in AMTBT and ATMB in Scene/bits.cc
+Quaternion normalisation for 3D mode.
+Created SceneLib/Docs directory and wrote models.tex
+Fixed longstanding bug in 3d.cc giving warning messages (errors in RH 7.0).
+
+Merged latest Nkita changes.
+- SceneHead/head.h: new important function check_miss_measurement_angular()
+  to test for innovation gate failure even if left and right both match.
+
+3D!
+- 3D motion models: many changes in Scene/bits.cc (quaternion functions)
+  New ThreeD_Motion_Model class in Scene/models_base.h
+
+Incorporated into CVS 18/11/2000:
+Since new changes incorporated:
+- In Scene/kalman.cc:
+  - FAST filter now works with multiple observations (or always did), but
+    is more prone to numerical error (poss. due to non-linearity).  Use with
+    small time steps only.
+  - Seems (90% certainty) to work with running two filter methods at once and
+    swapping the state and covariance in and out of the scene object.
+- Default filter type now forced in kalman_form.cc, so it is set by the form
+  (formkalman.c) in formdesign.  Warning: if it is set to NONE in the form
+  there will be an undefined result (the form will say `NONE' but one of the
+  filters will still be running).
+- New horatio function in bits: hor_print_error (), for use in assertions.
+
+Merging Joss's changes and making further improvements:
+- Changed waypoints so they now use normal state vector rather than
+  position state form.
+- Generalised func_zeroedxv etc. even further by introducing functions
+  func_xpredef(), func_xvredef_...() in models_base.h which generally deal 
+  with the situation of how to calculate new robot state values if the origin 
+  of coordinates is arbitrarily redefined. This allows it to work for double 
+  robots as well.
+- Generalised EVENSPACE command in initialise_simulation to work for
+  POINTS in various dimensions.
+- Removed references to update_performance_info from kalman.cc; now
+  no dependencies on XForms in Scene
+  update_performance_info now called locally
+- Removed constants from simul.h
+- initialise_visible_features removed from control_general.cc;
+  go_vehicle returned to previous state
+- Created functions func_zeroedxv_and_dzeroedxv_by_dxv and
+		    func_zeroedyi_and_dzeroedyi_by_dxp_and_dzeroedyi_by_dyi
+  in Motion_Model and Feature_Measurement_Model classes respectively.
+  These calculate what happens if the axes are zeroed at a certain time:
+  i.e. redefined so that the robot is at the origin of coordinates.
+  This replaces hiEuc in a more general way, and provides the general zeroing
+  functionality I've wanted for a while.
+  Also can usually be called usefully as part of a measurement function
+  (see Head_Point_Feature_Measurement_Model::func_hi_and_...).
+- Created Waypoints class, replacing and tidying up functionality that was in 
+  control_general.cc
+- Makefiles: simplified and improved; now just about right?
+
+Integrated Joss's first batch of additions:
+- In XFormsBits: forminspect, scene_inspect covariance inspector
+	         formkalman, kalman_form Kalman filter interaction
+- In Scene/bits.cc: various new matrix functions
+- In Scene/control_general.cc: EVENSPACE command when reading to initialise
+	Simulation: sets evenly-spaced feature distribution
+	Specific to HEAD_POINT at the moment.
+
+	In go_vehicle: in simulation automatically initialises features
+		close to robot: needs making into option or removing
+		from control_general I think.
+	
+	New initialise_feature 2 versions: new one initialises near features
+- In Scene/feature.cc: Extra interfaces, "age" of features
+	New friends of MatrixBlock maybe not nice.
+- In Scene/kalman.cc:
+	New filtering methods
+	Chosen between by means of flags: would be better to use derivation?
+	Can do two types of filtering at once and swap results in/out.
+	Now depends on more stuff; lots of headers.
+- In Scene/models_base.h:
+	Extra, not really general function, hiEuc (Euclidean distance)
+- In Scene/scene_base.h:
+	New access function get_Pyjyk: better to just be in Scene_Single
+		I think.
+	predict_single_feature_measurements(): should definitely not be in
+	Scene.
+- In Scene/scene_single.h, .cc:
+	Implementations of get_Pyjyk, predict_single_feature_measurements()
+	New function age_all_features: age of features (how long since 
+		measured).
+	Slight modifications to construct_total_covariance(): should be the
+		same though.
+	Modifications to fill_states and fill_covariances: can partially fill 
+		the states.
+	Implemented age_features 
+		(and call from successful_measurement_of_feature())
+- In Scene/simul.h
+	New constants.
+
+Changes for version 0.71 (2000/10/07) CVS tag rel-0-71
+------------------------------------------------------
+
+- Moved SceneApp/make to SceneLib
+
+Changes for version 0.70 (2000/10/04) CVS tag rel-0-70
+------------------------------------------------------
+
+- Split Application distribution from main library
+- Created new libraries SceneHead and SceneImproc
+- Completely revamped Makefiles and READMES
+- Put under CVS control
+
+Changes for version 0.63 (2000/7/24):
+-------------------------------------
+
+- Added GTI motion model
+- Renamed directories (e.g. ETLRobot, ETLDouble)
+
+Changes for version 0.62 (99/10/15):
+------------------------------------
+
+- Experimental DSM implementation (Decoupled Stochastic Mapping, a method
+  by Leonard and Feder of MIT for improving map updating efficiency by
+  division into submaps). So far only uses "cross-map relocation"
+  rather than "cross-map updating".
+  In Robot/ extra version of excutable filsim_dsm uses DSM
+  (filsim remains, using a standard single map).	
+- Generalisation of Scene class hierarchy to allow DSM and other 
+  methods using submaps. The former simple Scene class is now known
+  as Scene_Single.
+
+Changes for version 0.61 (99/10/1):
+-----------------------------------
+
+- Waypoint browser allows runtime manipulation of waypoint list.
+- Moved calculation of nu (innovation) to feature measurement models:
+  before was done in kalman.cc, and would be incorrect for measurements 
+  that weren't angular.
+- In Double/ allowed for marker to be placed off-centre on second robot
+
+Changes for version 0.60 (99/9/23):
+----------------------------------
+
+- Internal_Measurement_Model now generally supports measurements just 
+  depending on the robot state. Specific instantiation 
+  Double_Marker_Internal_Measurement_Model for inter-robot measurement 
+  in Double/
+- In Robot and Double, button added to lock steering and turret controls 
+  together
+- Fixed small bug in Double/double_robot.cc
+
+Changes for version 0.52 (99/9/5):
+----------------------------------
+
+- Go Vehicle now redisplays axes and true points at each step
+
+Changes for version 0.51:
+-------------------------
+
+- Double/ now working (so far without measurements between one robot
+  (and the other)
+- Loop-round now built in to waypoint navigation
+
+Changes for version 0.5:
+------------------------
+
+- Simulation and Robot are now derived from the base class Sim_Or_Rob
+  rather than having typedefs
+- Created Class/control_general.cc and put many functions there
+- Automatic navigate to next waypoint button
+- Improved state output functions
+- Added show robot and head odometry buttons
+- Added "destructors" for Motion_Model and Feature_Measurement_Model
+- Added to models: func_xpose_and_Rpose(), func yipose()
+- Split models.h models.cc into separate models files
+- Separate draw_axes function now in 3d.cc
+- Added write_patch to Robot so can write patches for known features
+- Added auto_select_feature to scene.cc
+- Hacked required_time a bit to make up for slow vehicle start
+- Found bug in control.cc: need to test if no measurements and not call
+  total_update_filter
+- Added set_all_vehicle_sliders_from_parameters() in control.cc
+- Navigate to waypoint in control.cc and models.cc
+- models.h is now included by robot.cc and head.cc
+- Added test for visibility of point features
+- Added initialise_auto_new_features() to initialise several new features
+- Added support for known features
+- Added Double directory, and Double_Motion_Model to models.
+- Reorganised READMEs a bit
+
+Changes for version 0.4:
+------------------------
+
+- Fixed bug: move hor_mat_free_list(hL, ShL, NULL); to end of measure_feature
+  in robot.cc
+- Added more functions to 3d.cc to support 1D feature types
+
+Changes for version 0.3:
+------------------------
+
+- Now not using XForms images any more, but still XForms canvases
+- Images displayed using Horatio function to convert to X format
+- Added read images from file
+- Added dialogue box at startup about robot modes
+
+Changes for version 0.2:
+------------------------
+
+- Using XForms images
+- Using one-off grabbing
+- Image transformations (to cope with non-perspective lenses) supported 
+  in grab.cc
+
+-------------------------------------------------------------------------------
+
+7. Known Bugs
+
+With some cajoling of the kalman form you can fool it into printing the
+performance info next to the wrong filter type.
+
+next_free_label in scene.h and simul.h should keep generating unique
+labels, but will fail at int overflow (hello if you're reading this in
+the year 3000).
+
+Max features in one time limited to MAX_FEATURES by 3D tool
+
+Changed in horatio:
+Line that makes selected things a different colour in tool/threed.c
+
+------------------------------------------------------------------------------ 
+

@@ -1,0 +1,47 @@
+# Copyright 1993 Philip F. McLauchlan (pm@robots.oxford.ac.uk)
+#                Robotics Research Group, Oxford University.
+SHELL = \bin\sh
+NAME = tool
+INCDIR = ..\include
+HFILEDIR = $(INCDIR)\horatio
+INCLUDE = $(HFILEDIR)\$(NAME).h
+
+#---compilation options---
+CC = cl
+CFLAGS = -AL -DXOW_OLDNAMES
+
+#---files---
+LIB = ..\lib\horatio.lib
+OFILES = ca_tool.obj ls_tool.obj blm_tool.obj pc_tool.obj sc_tool.obj cow_tool.obj \
+	 bcm_tool.obj dcm_tool.obj fl_tool.obj is_tool.obj cl_tool.obj popup.obj memory.obj \
+	 graph.obj threed.obj toggle.obj region.obj velocity.obj read_prm.obj test_prm.obj
+HFILES1 = def.h \
+	  ca_tool.h ls_tool.h blm_tool.h pc_tool.h sc_tool.h cow_tool.h
+HFILES2 = bcm_tool.h dcm_tool.h fl_tool.h is_tool.h cl_tool.h popup.h memory.h
+HFILES3 = graph.h threed.h toggle.h region.h velocity.h read_prm.h test_prm.h
+INCLUDE = $(HFILEDIR)\$(NAME).h
+
+#---make rules---
+.c.obj:
+	$(CC) $(CFLAGS) -c $<
+	lib $(LIB) -+$*.obj, ,
+
+$(LIB): $(OFILES)
+
+$(OFILES): $(INCLUDE) $(HFILEDIR)\global.h
+
+region.o graph.o memory.o threed.o toggle.o: $(HFILEDIR)\list.h
+
+region.o graph.o threed.o: $(HFILEDIR)\image.h $(HFILEDIR)\graphics.h
+
+region.o threed.o: $(HFILEDIR)\math.h
+
+#---library include file rules---
+$(INCLUDE): $(HFILES1) $(HFILES2) $(HFILES3) Makefile
+	cat $(HFILES1) > temp1
+	cat $(HFILES2) > temp2
+	cat $(HFILES3) > temp3
+	cat temp1 temp2 temp3 > $(INCLUDE)
+	del temp1
+	del temp2
+	del temp3

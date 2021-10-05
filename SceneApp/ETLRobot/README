@@ -1,0 +1,87 @@
+Robot: dual-mode robot/simulation map-building for a robot with Active Vision
+-----------------------------------------------------------------------------
+
+When compiling this directory, uncomment the -D_THREED_ flag in CFLAGS
+if you wish to compile in 3D mode (so the robot navigates on a
+non-flat surface).
+
+
+Some general points:
+--------------------
+
+- The program will be compiled into both simulation or robot mode in
+the Makefile. Libaries from the Scene/Class directory are generally
+used in both.
+Some source files (control.cc, main.cc) compile to 2 different
+versions for these 2 modes, and have #ifdefs in them depending on the
+symbol _ROBOT_ which is defined (in the Makefile compiler line) for
+robot mode, and undefined for simulation mode. The other source files
+are specific to either mode. Hopefully this is clear in the Makefile.
+
+The class Sim_Or_Rob is typedefed as either a Robot or
+Simulation. These classes have been designed to have some of the same
+member names which do the equivalent things in robot or simulation
+mode. The Robot class contains functions to communicate with the
+robot, and the Simulation class has dummy counterparts for the
+simulation case. The Simulation class also holds the "true state" of
+the world (i.e. the true positions of the vehicle and features) which
+the system is trying to estimate, and responds to commands like "move
+robot" or "measure feature" by updating its parameters with simulated
+noise. A linked list of Simulation_Feature objects stores the
+positions of the true features.
+
+- Of the three XForms GUI panels, formcom has buttons calling
+functions which are common to robot and simulation modes, and the
+other two are specific (so in robot mode you get formcom and formrob,
+in simulation mode formcom and formsim).  To look at or change the
+design of one of these forms once you have installed Xforms, do for
+example "fdesign formcom".
+
+What's in each of the files
+---------------------------
+
+See Scene/Class for the files which form the guts of the map-building 
+algorithm. Files specific to this directory are:
+
+scenesim/scenerob:
+
+	The executables for simulation or robot.
+
+main.cc: 
+	
+	A simple main{} which just initialises Xforms and then passes
+	control to set_up_control() in control.cc.
+
+control.cc:
+
+	The main file where things happen. The main classes are instantiated
+	here. The buttons defined in the Xforms call functions here.
+	The function set_up_control is called from main() when the
+	program starts to initialise things in this file. Execution will 
+	stay in the for(;;) loop at the end of this function,
+	which repeatedly checks for user inputs, either from Xforms
+	or the 3D tool, which call callback functions which live in
+	this file.
+
+robot.cc:
+
+	Contains functions to interface with the robot in the Robot class.
+	When we compile in simulation mode, this is replace by Class/simul.cc
+	which provides the same interface to a simulated environment.
+
+initial_state2D/3D:
+
+	A file which must exist, and which contains the initial 
+	state to initialise the robot with in the Scene class.
+
+scene_points2D/3D:
+
+	A file which must exist to run in Simulation mode --- contains
+	the initial robot state, and then a list of the locations of
+	features in the simulated world.
+
+known_points2D/3D:
+
+	A file which need not exist, but if it does gives information
+	on features whose positions are known perfectly at the start 
+	of operation.

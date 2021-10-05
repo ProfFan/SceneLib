@@ -1,0 +1,8 @@
+#include startup.lnk
+glob_io.lib
+pipe.lib
+list_io.lib
+math_io.lib
+image_io.lib
+mit.lib
+iff.lib

@@ -1,0 +1,115 @@
+.TH libpbm 3
+.SH NAME
+HORATIO - libraries to support vision applications
+.SH SYNOPSIS
+.de Ss
+.sp
+.ft CW
+.nf
+..
+.de Se
+.fi
+.ft P
+.sp
+..
+.Ss
+#include <horatio/global.h>
+#include <horatio/pipe.h>
+#include <horatio/list.h>
+#include <horatio/math.h>
+#include <horatio/image.h>
+#include <horatio/graphics.h>
+#include <horatio/improc.h>
+#include <horatio/process.h>
+#include <horatio/tool.h>
+cc ... libhoratio.a
+.Se
+.SH DESCRIPTION
+The
+.I Horatio
+vision system comprises a set of libraries written in ANSI C for
+Sun-3, Sparc and SIG workstations (using gcc), PC's, and transputers
+(using Inmos C).
+The Sun and SIG libraries will typically be used to support an X-windows based
+image processing application, examples of which are provided, but
+only two of the higher level libraries are X-specific.
+.SH LIBRARIES
+.SS GLOBAL
+Contains definitions and functions used by all other libraries.
+This comprises modules for printing messages to arbitrary windows,
+handling errors, a stack-based memory allocation, boolean array manipulation,
+a ring-buffer module for real-time transputer applications,
+and miscellaneous extensions to the transputer C library.
+.SS PIPE
+Comprises pipeline control functions, which allow the creation
+of groups of transputer pipelines in which concurrency of I/O and
+processing is performed automatically and dynamic re-initialization
+enabled.
+.SS LIST
+Supports use of singly and doubly linked lists of arbitrary
+C objects, association lists to label every object in a list with
+a unique identifier, and channel/stream I/O of singly-linked lists.
+The list is a widely used construction in Horatio.
+.SS MATH
+Contains low-level maths functions. At present this includes a set of
+matrix/vector functions, a Kalman filter module and various maths
+functions. Also included is a variable state dimension filter (VSDF) module.
+.SS IMAGE
+Contains low-level image and sub-image definitions and functions.
+The functions allow allocation, freeing, conversion between types,
+simple arithmetical pixel operations and comparison of size and type.
+Also included are channel, stream and file I/O functions for images
+(channel functions for transputer only).
+Image file formats currently accepted are MIT, IFF and PGM,
+with input images being optionally compressed (Gnu or UNIX compression).
+.SS GRAPHICS
+Supports the display of images and other primitives on one of an
+arbitrary number of X-windows canvases in an image-centred coordinate frame.
+It also contains functions to set up the colourmap, handle mouse events
+in an easy-to use manner, print text on an X text window, and to store and
+re-display the contents of a canvas.
+.SS IMPROC
+An image processing library which contains source for several low-level
+tools: edge/corner detection, normal image flow, grey-level image segmentation
+and image correlation. Feature trajectories are supported in a way that allows
+mixing of different kinds of features in the same trajectory map, and example
+corner and line segment temporal matching algorithms are provided.
+Also included are display functions for the results.
+.SS PROCESS
+contains functions for setting up and using virtual image processing
+pipelines. This allows algorithms to be built on lower-level algorithms
+easily, so that alternatives at any level can be quickly tested and compared.
+.SS TOOL
+Contains high-level X-windows tools for creation of Horatio-based
+applications. Included are functions dealing with initial setup of
+Horatio windows, creating popup panels and reading parameters.
+There are also special purpose display modules for interactively
+showing a sequence of arbitrary objects, dynamically drawing the
+value of a variable (a rolling graph) and an interactive tool
+for displaying 3D objects (currently points, line segments and texture-mapped
+facets).
+
+The
+.B GRAPHICS,
+.B IMPROC,
+.B PROCESS
+and
+.B TOOL
+libraries are for Sun only, while the
+.B PIPE
+library is only for transputers.
+Only the
+.B GRAPHICS
+and
+.B TOOL
+libraries are X-specific.
+.SH FILES
+.ta \w'DOCDIR/horatio.dvi 'u
+\fIDOCDIR\fR/horatio.dvi	Documentation for the libraries.
+.sp
+.I DOCDIR
+will usually be
+.B /usr/local/doc .
+.SH "SEE ALSO"
+.LP
+.BR horatio(1)

@@ -1,0 +1,744 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.76 [en] (X11; U; Linux 2.2.16-22 i686) [Netscape]">
+   <title>SceneApp Tutorial</title>
+</head>
+<body text="#FFCF00" bgcolor="#4C3600" link="#E54141" vlink="#B54141" alink="#008000">
+
+<center>
+<h1>
+<b><font face="helvetica"><font color="#FFFFFF"><font size=+4>SceneApp
+Tutorial</font></font></font></b></h1></center>
+
+<center><table BORDER=0 CELLPADDING=10 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr VALIGN=TOP NOSAVE>
+<td WIDTH="130" NOSAVE><b><font face="Arial,Helvetica"><a href="sceneapp.html#ETL2D">Active
+Visual Navigation Simulation (directory ETLRobot/)</a>:</font></b></td>
+
+<td NOSAVE><font face="Arial,Helvetica">A simulation of map-building for
+a Nomad-like robot measuring features visually with a stereo active head
+(and the robot version currently used to drive a real robot in our laboratory).
+This section also includes discussion of some of the functionality available
+in the system as a whole, such as the support for waypoint navigation,
+previously known features and manually setting the initial state.</font></td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE><b><font face="Arial,Helvetica"><a href="sceneapp.html#ETL3D">Active
+Visual Navigation in 3D on Non-Flat Terrain Simulation (directory ETLRobot/)</a>:</font></b></td>
+
+<td><font face="Arial,Helvetica">An extension of the system above to the
+case where the robot now moves on undulating terrain and must estimate
+its location in 3D, using active vision in combination with a roll/pitch
+accelerometer sensor.</font></td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td NOSAVE><b><font face="Arial,Helvetica"><a href="sceneapp.html#analyse">Scene
+Data Analysis</a></font></b></td>
+
+<td><font face="Arial,Helvetica">A program (currently only implemented
+for the Active Visual Navigation in 3D system) for data analysis from real
+and simulated experiments, from which numerical and postscript graphical
+output can be performed to create results for papers, etc.</font></td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td><b><font face="Arial,Helvetica"><a href="sceneapp.html#Double">Active
+Vision Double Robot Simulation (directory ETLDouble/)</a>:</font></b></td>
+
+<td NOSAVE><font face="Arial,Helvetica">Simulator/real software for a two-robot
+system, with one vision robot and a blind slave robot. The two robots'
+locations are estimated within a single motion model which permits the
+rest of the software to be used in its standard configuration. The vision
+robot is able to make observations of the blind robot to aid its position
+estimation.</font></td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td><b><font face="Arial,Helvetica"><a href="sceneapp.html#Camera">Single
+Camera in 3D (directory Camera/)</a>:</font></b></td>
+
+<td NOSAVE><font face="Arial,Helvetica">Both simulation and implementation
+using real images for vision-based localisation using a single camera (currently
+using only prior-known features).</font></td>
+</tr>
+
+<tr VALIGN=TOP NOSAVE>
+<td><b><font face="Arial,Helvetica"><a href="sceneapp.html#1D">1D Simulator
+(directory OneD/)</a>:</font></b></td>
+
+<td NOSAVE><font face="Arial,Helvetica">A simulator with simple 1D vehicle
+movement and feature measurement models which makes the properties of SLAM
+very easy to see.</font></td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<br>&nbsp;
+<center><table CELLPADDING=10 COLS=1 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr>
+<td>
+<center>
+<h1>
+<a NAME="ETL2D"></a><b><font face="helvetica"><font color="#FFFFFF">Active
+Visual Navigation Simulation</font></font></b></h1></center>
+<font face="helvetica">This is the same software that is used in a real
+robot application in Japan, but operating here in a simulated environment
+where we have modelled the noisy motion and measurement processes of that
+robot in a world containing a user-specifiable distribution of point features.
+The program uses an Extended Kalman Filter, with fully covariance-coupled
+estimates of the location of the robot and all the features (an approach
+sometimes referred to as Stochastic Mapping).</font>
+<center>
+<p><font face="helvetica">To run the program:</font>
+<p><font face="helvetica">cd SceneApp/ETLRobot</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenesim</font></dt></center>
+
+<p><br>
+<p><font face="helvetica"><font color="#FFCF00">If this binary does not
+work on your system due to library issues, you may have to compile the
+sources yourself (or <a href="mailto:ajd@robots.ox.ac.uk">contact me</a>
+for help). If you have a non-Linux UNIX system, it is probable that minor
+changes will need to be made before successful compilation.&nbsp;</font></font>
+<p><font face="helvetica"><font color="#FFCF00">The following is an explanation
+of the program's operation, and suggestions for producing interesting behaviour.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Display</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">A 3D display of the robot
+(represented by a wedge shape) and some features in the world will pop
+up, along with other windows with control buttons. The robot moves on the
+zx plane, and the y axis is vertically upwards. The 3D viewer can be turned
+around by clicking on it with the left (3D rotate) or middle (planar rotate,
+zoom) mouse buttons, and dragging. Please ignore the buttons appearing
+in the same window as the 3D display.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">True Quantities</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">By convention, "true" quantities
+are shown in yellow --- where the robot and features really are in the
+world. The robot starts from the origin of coordinates. The yellow feature
+points represent the true positions of things in the simulated world which
+the robot might choose to use as landmarks. The locations of these are
+determined by 3D coordinates in the file "scene_features2D" included in
+the tar file, and this can be edited to change their number and locations.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Making Measurements of
+Features</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">Feature points can be selected
+with the right mouse button. When a yellow true feature is selected for
+the first time, it becomes something which the robot is interested in,
+and an initial simulated measurement is made of it. The feature is initialised
+into the robot's map of its surroundings. A green point will appear which
+represents the estimated position of the feature, and green lines will
+indicate the major axes of the ellipsoid representing the uncertainty in
+the location of that feature (at the 3 standard deviation level). In this
+program, measurement uncertainties are modelled on stereo measurements
+from a binocular active head: from a binocular match of a feature, knowledge
+of the head geometry and camera parameters allows its 3D position to be
+estimated from simple ray back-projection. The uncertainty in the estimate
+is principally in the depth direction, particularly when the feature is
+distant from the robot, since here it depends on the estimate of the intersection
+of two nearly-parallel rays.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Selecting Features</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">Clicking the right button
+on a feature which has already been initialised toggles its status as a
+"currently selected" feature. Selected features change colour from green
+to red. Features automatically become "selected" when they are initialised.
+Selected features are those of which the robot will make further measurements
+as it moves, and the number of selected features can vary from zero to
+all the initialised features.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Moving the Robot</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">To move the robot, first set
+a velocity and potentially a non-zero steering or turret increment using
+the slider controls. "v" is the robot velocity in metres per second. The
+motion geometry of the robot is such that its three wheels all turn together
+on the spot (this is the steering axis), and the robot can move in any
+direction without changing the direction it is facing. A further axis,
+the turret, rotates the body of the robot relative to its base. Combining
+these two axes means that the robot can move in any direction on the plane
+while facing any other; however, by default in this program a "steering
+lock" is in place which ties their rotations together. The "Steering Increment"
+and "Turret Increment" slider controls set how much each of these axes
+will be changed at each movement step. Changes in the steering angle are
+not directly shown visually, but will be apparent in the direction of movement
+of the robot when given a velocity.</font></font>
+<p><font face="helvetica"><font color="#FFCC00">Clicking on "Go Using Robot
+Control Parameters" makes the robot move one time step (of duration settable
+by another slider) according to the currently set control parameters v,
+and delta_S and delta_T. However, simulated random variations are incorporated
+to produce the amount by which the yellow true vehicle position moves in
+this step. In the real world, factors such as wheel slippage would mean
+that the robot would never move in exactly the way commanded. At the end
+of each step, a simulated measurement is taken of each of the selected
+features. For convenience, the number of steps of movement occurring with
+one click of "Go" can be changed with "Increase/Decrease Steps" (although
+this is limited to one if the number of selected features is more than
+one, reflecting the situation with our active vision-equipped robot which
+can track only one feature at a time continuously).</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Growth of Uncertainty</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">Once the robot has moved somewhat
+away from its starting position, where by definition its location is perfectly
+known (the origin of coordinates is defined at the starting point), a green
+representation of the robot will be seen as well as the true yellow one.
+This represents the robot's estimate of its position, just as green points
+are estimated feature locations. Try deselecting all features and making
+a long series of movements. Soon, the yellow true robot position and green
+estimate will begin to diverge significantly. With no visual feedback,
+the robot is moving blindly. Its only way to estimate its location is by
+adding up the number of times its wheels have turned, and errors will accumulate.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Limiting Uncertainty Using
+Feature Measurements</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">Now try making some extended
+movements with one or more features selected. It will immediately be seen
+that the robot is able to continuously estimate its location better now
+than when moving blindly. The uncertainties in the world locations of the
+measured features will dramatically improve as well with repeated measurements.
+Try altering the set of selected features from time to time to see which
+measurements improve estimates the most.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Tracking Just One Feature
+and Active Fixation Switching</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">In the robot application which
+this map-building system is applied to in our work, features are measured
+by fixating on them with the binocular cameras of an active head. This
+means that features can be measured in locations spanning a very wide field
+of view relative to the robot. However, the key point here is that only
+one feature can be measured at once. Try moving the robot for a long period
+while tracking just one feature. The robot's estimated position will in
+general track the true position well, but after a while you may notice
+a characteristic drift occurring, in the direction perpendicular to the
+horizontal projection of the line joining robot and feature. Measuring
+just one feature does not fully constrain the robot's position estimate.
+In the covariance matrix, uncertainty will grow without bound in this direction.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">The action which will eliminate
+this drift is to select another feature instead and track that one for
+a while. In our active system, this kind of rapid switching of attention
+to limit uncertainly is a fundamental behaviour, and similar to the way
+that the human eye is always in motion during navigation tasks.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Long-Term Navigation</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">Now consider the problem of
+long-term navigation. It is all very well to be able to calculate your
+current motion on the basis of tracking the things you can see at the moment,
+but in situations where the same areas will be repeatedly visited (such
+as in almost any robot application you could imagine), it is essential
+that the robot can recognise them as such. Previously seen landmarks should
+be able to be recognised, even after long periods of neglect, and when
+they are, the robot should be able to be as sure of its location in the
+world as the first time it saw them. Fully-coupled map-building supports
+this capability.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Demonstrating Long-Term
+Map Building and Using</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">Try this: first, rename the
+current "scene_features2D" file to something safe, then rename "scene_corridor"
+to "scene_features2D", i.e.:</font></font>
+<center>
+<p><font face="helvetica"><font color="#FFCF00">mv scene_features2D scene_features2D_safe</font></font>
+<br><font face="helvetica"><font color="#FFCF00">mv scene_corridor scene_features2D</font></font></center>
+
+<p><font face="helvetica"><font color="#FFCF00">This puts a more complex
+scene point distribution into place in the simulation (the file scene_features2D
+is loaded as the program starts). Restarting the program "scenesim", initialise
+just one feature close the the robot, and track it while moving towards
+another feature. Deselect the first one, then initialise the second and
+track that while moving towards a third. In this way, try to make a "circuit"
+of the available features (which are laid out in a supposedly "looped-corridor-like"
+configuration), coming back in the direction of the very first feature
+while only ever acquiring a new feature for a short period of tracking
+then moving onto another new one.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">What you should see is
+that a rather large amount of drift in the robot location estimate has
+occurred. Acquiring and tracking a new, unknown feature, provides no new
+information on the robot's position in the world frame. Further, the estimates
+of the world locations of the most recently acquired features will be quite
+uncertain, since the robot's location was itself uncertain when they were
+initialised.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">The interesting thing now
+is to reselect the first feature initialised. This is like completing a
+loop of a rectangular corridor in a building and coming back to where you
+started. The coupling of estimates in the covariance matrix will mean that
+making this measurement, as well as immediately making the robot position
+estimate accurate again, also improves the estimates of all the other features
+tracked in between this closing of the loop.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">Deselect all features and
+make a long blind movement. Then select a known feature and see how the
+robot estimate locks back into place. Sometimes two or more features will
+have to be measured in turn here to fully recover to a good estimate. Is
+is of course possible to cause the algorithm to fail in such extreme cases
+as this due to the unmodelled non-linearities in the system, but you have
+to try quite hard.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Monitoring the Map State</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">The "Print True State" and
+"Print State" buttons output the true (yellow) robot state, and estimated
+(green) state respectively, in the estimated case along with the state
+covariance matrix. The format of the state vector is (x, y1, y2, y3, ...),
+where first x represents the robot location, having 5 parameters for z
+location, x location, steering angle, turret angle and velocity scaling
+(not enabled at present but allows correction of a systematic error in
+the robot calibration). The yi have 3 coordinates each representing the
+x, y, z location of the features. "Output Current State" outputs the estimated
+state and covariance to a file. Since the simulation is closely modelled
+on a real robot, the numbers have meaning: distances are in metres, and
+the angular parameter in radians.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Scene Inspector</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCC00">This application also includes
+an experimental tool (implemented by Joss Knight) for viewing a covariance
+matrix graphically. The "Scene Inspector" button launches a new window
+in which the covariance matrix is shown in block form, each chunk showing
+the cross-covariances between the robot and feature elements of the state
+vector. Diagonal parts of the matrix are shown in red, and parts of the
+matrix relating to up to two recently selected features in blue. The number
+at the centre of each block shows a one-number representation of the value
+of that matrix chunk, calculated in a way determined by the yellow buttons
+beneath. Clicking on a chunk brings up the explicit contents of the matrix
+chunk in the small white box to the bottom-right of the window.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Automatic Feature Selection</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">"Auto Select Feature" implements
+the automatic feature selection capabilities you can read about in the
+papers available on my <a href="http://www.robots.ox.ac.uk/~ajd/" target="_top">home</a>
+page. In an active system, choices must be made about which of a set of
+possible measurements should be made at a given time. According to the
+uncertainty information relating to a particular feature, it can be assigned
+a score indicating how worthwhile it is to measure it. "Auto Select Feature"
+automatically selects the outstanding feature for immediate measurement.
+Note that this selection only chooses between features which are determined
+to be currently "visible" by a criterion which limits the distance moved
+by the robot between attempting to make matches of a particular feature,
+given that in our real robot system matching is achieved with simple planar
+correlation. Try experimenting with this function and see how it will act
+to reduce the greatest uncertainty in the map and keep it globally tight.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Setting the Initial State</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">The above discussion has assumed
+that the robot defines the world coordinate frame at its starting position,
+and thus has zero position uncertainty as the program starts. However,
+sometimes this is not what is required, particularly if some known features
+are being used in the map (see below). The file "initial_state2D" is used
+to set the initial robot state vector and covariance. See this file for
+format details.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Previously Known Features</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">It is possible to specify
+features whose positions are previously already when the robot starts navigating
+using a file known_features2D which will be read as the program starts.
+To test this feature, rename the provided known features file with the
+command:</font></font>
+<center>
+<p><font face="helvetica"><font color="#FFCF00">mv known_features2D_safe
+known_features2D</font></font></center>
+
+<p><font face="helvetica"><font color="#FFCF00">These features will be
+inserted into the map with zero covariance and thus are "perfect" landmarks.
+Arbitrary numbers of perfect and normally self-detected features can be
+used together. When some known features are specified in the map, note
+the effect this has on the choice of initial state and covariance for the
+robot, as defined in the file "initial_state": if these known features
+have defined world positions with zero covariance, can we be sure when
+placing the robot at its initial or zero position in the world that its
+position relative to these features is perfectly set? It makes more sense
+to give the robot a realistic uncertainty in its initial position (maybe
+a couple of centimetres of potential error in position and a few degrees
+in orientation). In this way, the world frame is now being defined by the
+known feature positions, rather than the initial position of the robot,
+which we could safely do when nothing at all was known in advance about
+the world.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Autonomous Navigation</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">Position-based navigation
+through a sequence of pre-specified waypoints is supported. If the file
+"waypoints2D" exists when the program is started, its contents are read
+into memory and then pressing the "Navigate to Next Waypoint" button makes
+the robot move continuously to its next target position. During this navigation,
+automatic feature selection is performed at each movement step, so the
+robot makes measurements of the features it can see. See the waypoints2D
+file included in the distribution for format details.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Deleting Features</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">"Delete Feature" deletes the
+last clicked-on feature is removed from the state vector and the map.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Zero Axes</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">"Zero Axes" performs a redefinition
+of axes at the robot's current position: that is to say that the robot
+state is set to zero, and the state of each of the features is set to be
+its location relative to the robot. All covariances in the map are transformed
+correctly. It is very interesting to use this feature to get a different
+view on the uncertainty in the map: with a redefinition of axes, generally
+those features close to the robot's current position will be seen to have
+low uncertainty, while those far away, whether close to the original coordinate
+frame or not, are seen to have a large uncertainty. This emphasizes that
+the choice of world coordinate frame is arbitrary.</font></font>
+<center>
+<h3>
+<b><font face="helvetica"><font color="#FFFFFF">Filtering Control</font></font></b></h3></center>
+<font face="helvetica"><font color="#FFCF00">The "Filtering Control" button
+launches an experimental tool (implemented by Joss Knight) which allows
+filtering methods different from standard stochastic mapping (the default
+"SLOW" option) to be tested, timed and compared. Using the selection box
+next to "Filter 1" a different main filter type can be chosen. The "Fast"
+filter performs optimal stochastic mapping but with improved separation
+of calculations in the implementation (updates for multiple observed features
+are applied in sequence rather than in parallel for instance) --- however,
+we have noticed increased numerical inaccuracies with this method over
+standard stochastic mapping. The other options are other experimental filtering
+implementations. If the selection box next to "Filter 2" is changed away
+from "NONE", two filters will run in parallel on the system, each with
+its own copy of the complete map data; that which is currently viewed is
+selected via the black button next to either Filter 1 or Filter 2. Information
+on the processing time consumed by the two filters is displayed to the
+right.</font></font></td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<center><table CELLPADDING=10 COLS=1 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr>
+<td>
+<center>
+<h1>
+<a NAME="ETL3D"></a><b><font face="helvetica"><font color="#FFFFFF">Active
+Visual Navigation in 3D on Non-Flat Terrain</font></font></b></h1></center>
+<font face="helvetica"><font color="#FFCF00">This simulator covers the
+case where the active visual robot of the section above is now not restricted
+to running on a flat ground plane, but moves on a non-flat, uneven surface
+whose orientation is not known.</font></font>
+<center>
+<p><font face="helvetica">To run the program:</font>
+<p><font face="helvetica">cd SceneApp/ETLRobot</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenesim3D</font></dt></center>
+
+<p><br>
+<p><font face="helvetica"><font color="#FFCF00">The simulator for this
+system is operated in mostly the same way as the single robot one above;
+however, setting non-zero control parameters and clicking on "Go Using
+Robot Control Parameters" produces a very different result. The simulated
+robot (shown in yellow) moves according to the control parameters, but
+its orientation begins to change and it moves up and down as motion across
+undulating terrain of unknown and changing orientation is simulated (the
+degree of undulation in the slope is determined by a single parameter representing
+the standard deviation of curvature). Note that this simulation is simplified
+in that there is no persistent terrain model generated in advance and&nbsp;
+underlying the random orientation changes which occur: random slope changes
+occur locally at the current robot position. This means that the same part
+of the "terrain" can be traversed more than once and have a different orientation
+--- nevertheless the model serves its purpose in this simulation. The robot's
+position is now of course represented in three dimensions, and its state
+vector has eight components (x, y, z, q0, qx, qy, qz, S): x, y, z are its
+cartesian position in 3D; q0, qx, qy, qz are the components of a <b>quaternion</b>
+used to represent 3D orientation; S is the relative steering angle representing
+the heading direction of the steering wheels with respect to the robot's
+turret.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">If no sensor measurements
+are used beyond the use of wheel odometry implicit at all times in this
+simulation, the estimated robot position in green does not track the true
+position at all well: without any further information, this estimate can
+do no better than assume the average case, that the terrain is flat, and
+the estimated robot moves in a plane, quickly diverging from the true position.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">A first level of improvement
+can be attained through the use of a roll/pitch orientation sensor assumed
+to be installed on the robot. Clicking "Measure Roll/Pitch" simulates a
+noisy measurement from this sensor and updates the estimate accordingly.
+Making occasional roll/pitch measurements can greatly improve localisation,
+but these measurements only reveal information about the robot's angle
+of lean to the left/right (roll) and front/back (pitch). There is no direct
+information about the horizontal orientation (yaw) or about cartesian position.
+The robot can be made to move while making repeated automatic roll/pitch
+measurements by using the "Go Using Roll/Pitch" button.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">The other way to improve
+3D position estimation is of course to build and use a map of scene features.
+This can be done in the same way as in the 2D navigation case described
+in detail above: clicking the right button on a point in the 3D viewer
+initialises a feature, and clicking it again toggles its status as a selected
+feature. Selected features will be measured at every movement step. "Auto-Select
+Feature" can be used to automatically select one visible feature for immediate
+meaurement. The "Navigate to Waypoint" buttons will make the robot perform
+multiple navigation steps to reach a target waypoint defined in the file
+waypoints3D or using the Waypoint Browser while using auto-select at each
+movement step to select features for measurement (note that these waypoints
+function in a 2D sense: the robot will ignore all but the first and third
+components of these waypoint entries, corresponding to x and z position,
+and steer in such a way that depending on the unknown slopes it will arrive
+at a position either directly above or below the waypoint).</font></font>
+<p><font face="helvetica"><font color="#FFCF00">It is interesting to compare
+performance when using vision both with and without the use of the roll/pitch
+sensor. With vision but no roll/ptich measurements, the level of uncertainty
+in the system is high at all times since whenever the robot moves its position
+uncertainty grows significantly due to the lack of knowledge about slope
+changes: the burden of reducing the uncertainty lies solely with vision.
+In fact, when this software was tested with a real robot (see the paper
+about 3D SLAM on my <a href="http://www.robots.ox.ac.uk/~ajd/" target="_top">home</a>
+page), it was found that this high level of uncertainty led to unacceptably
+large visual search regions and a high level of mismatches. Performace
+is much better when using vision and roll/pitch in combination: an example
+of sensor fusion.</font></font></td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<br>&nbsp;
+<center><table CELLPADDING=10 COLS=1 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr>
+<td>
+<center>
+<h1>
+<a NAME="analyse"></a><font face="Arial,Helvetica"><font color="#FFFFFF">Scene
+Data Analysis</font></font></h1></center>
+<font face="helvetica"><font color="#FFCF00">There is a program for analysing
+data from navigation experiments (either real or simulated), and in particular
+generate postscript diagrams of the map state, in the ETLRobot directory:
+currently this program will only work with data from the non-flat terrain,
+3D implementation, though this could easily be changed in the program.</font></font>
+<center>
+<p><font face="helvetica">To use the program, you first need to generate
+some data using the scenesim3D program:</font>
+<p><font face="helvetica">cd SceneApp/ETLRobot</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenesim</font></dt></center>
+
+<p><br>
+<p><font face="helvetica"><font color="#FFCF00">Simply click "Output State
+Data to File" at every position of the robot where you want to save a snapshot
+of the map and vehicle state (and covariance).</font></font>
+<br><font face="helvetica"><font color="#FFCF00">A file "state" will be
+written in the same directory. When you have finished, copy this file to
+a safe location (so it is not overwritten next time):</font></font><font face="helvetica"></font>
+<center>
+<dt>
+<font face="helvetica">cp state state0</font></dt></center>
+
+<p><br><font face="Arial,Helvetica">Then to run the analysis program to
+view just the estimated states of the map use:</font><font face="Arial,Helvetica"></font>
+<center>
+<p><font face="Arial,Helvetica">sceneanalyse3D n state0</font></center>
+<font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">where n is the number of snapshot states
+you wish to view (this will be the total number of times you clicked the
+button "Output State to File", and can also be determined from the file
+state0 by looking at the first of the two integers which precede the floating
+point numbers representing map data: this is the snapshot step number,
+starting from 0, so add 1 to the final step number in the file).</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">Within sceneanalyse3D, you can change the
+currently viewed step with the control at the top of the form. Clicking
+"Output Postscript"&nbsp;outputs a postscript picture to file ps_scene.ps.
+Use the other buttons on the form before pressing this button to adjust
+the parameters of the picture: the size, length of axes, etc.&nbsp;</font></td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<center><table CELLPADDING=10 COLS=1 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr>
+<td>
+<center>
+<h1>
+<a NAME="Double"></a><b><font face="helvetica"><font color="#FFFFFF">Double
+Robot System</font></font></b></h1></center>
+<font face="helvetica"><font color="#FFCF00">We have created a motion model
+which enables us to estimate the locations of two cooperating robots (see
+the paper "Active Visual Localisation for Cooperating Inspection Robots",
+Andrew Davison and Nobuyuki Kita, IROS 2000, available on my <a href="http://www.robots.ox.ac.uk/~ajd/" target="_top">home</a>
+page), and this implementation is in SceneApp/ETLDouble. In this scenario,
+one is a robot carrying an active vision head, while the other is a blind
+slave robot (carrying additional sensors or lighting devices, for instance).
+The estimates of the two robots' locations are stacked into a single "double
+robot" position vector.</font></font>
+<center>
+<p><font face="helvetica">To run the program:</font>
+<p><font face="helvetica">cd SceneApp/ETLDouble</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenesim</font></dt></center>
+
+<p><br>
+<p><font face="helvetica"><font color="#FFCF00">The simulator for this
+system runs in the same way as the single robot one above. The first robot
+can move around and carry out map-building as usual. A second set of controls
+exists for the second robot, which normally has only odometry to estimate
+its location. However, an additional control button "Make Observation of
+Second Robot" simulates a measurement by the vision robot of the location
+of a beacon marker attached to the blind robot. It can be seen that making
+this observation dramatically improves the second robot's position estimate.</font></font></td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<center><table CELLPADDING=10 COLS=1 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr>
+<td>
+<center>
+<h1>
+<a NAME="Camera"></a><b><font face="helvetica"><font color="#FFFFFF">Single
+Camera in 3D</font></font></b></h1></center>
+<font face="helvetica"><font color="#FFCF00">In this, perhaps the most
+interesting implementation of all and the main target of our future research
+(currently very experimental!), we consider the case of providing motion
+estimation for a single camera generally maneuvring in 3D. The motion model
+used is a constant velocity, constant angular velocity model. There are
+13 parameters in the state vector representing camera position: 3 for cartesian
+position, 4 for a quaternion representing 3D orientation, 3 for linear
+velocity and 3 for angluar velocity. Since this is a model for general
+uncontrolled motion, there are no control parameters.</font></font>
+<p><font face="helvetica"><font color="#FFCF00">Currently, this is not
+a SLAM implementation but one of localisation using known features (and
+can be thought of as inside-out model-based tracking). We include both
+a simulator and a real implementation with an image sequence where the
+locations of a collection of features have been measured by hand. It can
+be seen in both cases that the position of the camera is estimated well
+until the features in the map go out of view according to visibility criteria.</font></font>
+<center>
+<p><font face="helvetica">To run the simulator program:</font>
+<p><font face="helvetica">cd SceneApp/Camera</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenesim</font></dt></center>
+<font face="helvetica"><font color="#FFCF00">Clicking "Go Step by Step"
+moves the simulator along in 1/30 second time steps: you will see the yellow
+true robot position move in a random but smooth fashion, simulatiing the
+potential movement of an agile camera (for instance one attached to a person).
+This motion is determined by a constant velocity, constant angular velocity
+motion model with Gaussian noise in linear and angular acceleration. If
+you click on some features with the right button to select them, measurements
+of those will be made at every time step and you will see that the estimated
+position now tracks the true camera position well --- at least for a short
+while, while the small number of mapped features are visible. Clicking
+"Go With Auto-Select" makes the simulation move one step at a time, with
+at each time step an automatic selection of one <b>visible</b> feature
+being chosen to make a measurement of. It can be see that even with just
+one feature measurement per time frame, good localisation can be achieved.
+The decision about which features are expected to be visible is based both
+on whether they will appear within the camera's limited field of view,
+and also on whether the camera is in a position close enough to where it
+first saw each of those features from such that image-based matching can
+be expected to be successful (in the case of the features in this demonstration,
+all were assumed to have been initialised when the camera was at the origin
+and they will all go out of view when the camera moves far from there ---
+you can play with the file known_features to adjust the distribution of
+point features.</font></font>
+<center>
+<p><font face="helvetica">To run the program with real images, you will
+first need to install the image sequence available here: <a href="http://www.robots.ox.ac.uk/~ajd/Scene/seq.tar.gz">seq.tar.gz</a></font>
+<p><font face="helvetica">cd SceneApp/Camera</font>
+<br><font face="helvetica">tar xvfz seq.tar.gz (this should create the
+directory SceneApp/Camera/Sequence containing the images)</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenerob</font></dt></center>
+
+<dt>
+<font face="helvetica">Now, as well as the control window seen in the simulator,
+a window containing the image sequence will be seen. It is a sequence of
+about 175 images taken from a digital (Firewire) camera at 30Hz as it was
+picked up from a table and waved around in front of a calibration grid
+(chosen in this case because it allowed for easy measurement of the true
+locations of scene features. Click on "Go With Auto-Select" repeatedly
+as before to perform sequential localisation estimation. At each step,
+a new image will be loaded (note that the first second or so of images
+are the same because the camera was initially stationary). One feature
+from the known map of about 10 features (defined by hand by me at the corners
+of some of the squares on the calibration grid and a piece of paper lying
+on the floor --- the image patches corresponding to the features can be
+found in the files known_patch*.pgm) will be selected automatically at
+each time step using the simple criterion of choosing the measurement with
+the largest innovation covariance. A search region will be highlighted
+(the size of the search region is determined by the amount of process noise
+in the camera's motion model) to show which part of the image is being
+searched, and then hopefully correlation matching will detect the correct
+best match within that region, and the filter will update the position
+estimate of the camera. Note the rapid switching between measurements:
+it is necessary to make many different measurements since all will give
+different information about the camera position. Sorry that the program
+crashes when it runs out of images --- as I said this is experimental!</font></dt>
+</td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<center><table CELLPADDING=10 COLS=1 WIDTH="90%" BGCOLOR="#333333" NOSAVE >
+<tr>
+<td>
+<center>
+<h1>
+<a NAME="1D"></a><b><font face="helvetica"><font color="#FFFFFF">1D Simulator</font></font></b></h1></center>
+<font face="helvetica"><font color="#FFCF00">In the 1D version of the simulator
+(SceneApp/OneD), the properties of stochastic mapping become clear, since
+the matrices representing variances and covariances are reduced to scalar
+quantities. Jacobians tend to become either 1 or 0 as rotation complications
+are removed. Also, problems with non-linearites do not arise and the Kalman
+Filter (not an EKF in this case) operates optimally. The controls for this
+simulator (which is still displayed in a 3D tool although all quantities
+of interest live in one dimension) are the same as for the 3D simulator
+described above. As before it is possible to change the set of true world
+features and the initial robot state in the files scene_points and initial_state.</font></font>
+<center>
+<p><font face="helvetica">To run the program:</font>
+<p><font face="helvetica">cd SceneApp/OneD</font></center>
+
+<center>
+<dt>
+<font face="helvetica">scenesim</font></dt></center>
+
+<p><br>
+<p><font face="helvetica"><font color="#FFCF00">The robot has only velocity
+control as it moves along a linear path (like a train on a railway line).
+Its true motion deviates from commands with motion noise which is proportional
+to the distance travelled. Features (maybe some signs at the side of the
+tracks!) are measured in one dimension too, with a sensor that is assumed
+to have constant measurement noise (it can measure distant features with
+the same uncertainty as close ones, which is perhaps unrealistic but may
+fit some sensor types such as radar(?)).</font></font>
+<p><font face="helvetica"><font color="#FFCF00">One interesting thing to
+try is make some blind robot motions, then select a group of features and
+make many repeated measurements of all of them. The variances in the locations
+of the robot all of these features in the world frame, as well as all the
+covariances between these quantities, tend towards the same constant value.</font></font></td>
+</tr>
+</table></center>
+
+<p>
+<hr>
+<address>
+<a href="mailto:ajd@robots.ox.ac.uk">Andrew Davison</a></address>
+
+<br><!-- Created: Mon Jun 11 00:51:25 BST 2001 --><!-- hhmts start -->Last
+modified: Mon Jun 11 00:58:47 BST 2001<!-- hhmts end -->
+</body>
+</html>

@@ -1,0 +1,58 @@
+This is HORATIO: libraries for vision applications.
+
+Assumes the use of Gnu C (gcc) for workstations and Inmos C (icc) for
+T800 transputers.
+
+Directories:
+
+  global pipe list math image:
+             source for workstations and transputers.
+
+  graphics improc process tool:
+             source for workstations only.
+
+  include:   include directory.
+
+  mit iff:   image file source.
+
+  lib:       library directory.
+
+  doc:       documentation/man pages.
+
+  horatio:  HORATIO example application source.
+  horbasic: HORATIO basic application source.
+  utils:    Source for HORATIO-based utilities.
+
+To create the Sun libraries, horatio and horbasic applications, utilities and
+documentation, type
+	make
+
+To install the include files, set INCDIR in the Makefile and type
+	make install-inc
+
+To install the libraries set, LIBDIR in the Makefile and type
+	make install-libs
+
+To install the horatio executable, set BINDIR in the Makefile and type
+	make install-bin
+
+To install the HORATIO man pages, set MANDIR in the Makefile and type
+	make install-man
+
+To install the HORATIO documentation .dvi file, set DOCDIR in the Makefile
+and type
+	make install-doc
+
+To create the MIT and IFF image handling libraries, type
+	make image-libs
+
+To install the MIT and IFF image handling libraries, set LIBDIR in the
+Makefile and type
+	make install-image-libs
+
+To create the Inmos T800 transputer libraries, type
+	make T800
+
+To install the Inmos T800 transputer libraries, set T8LIBDIR in the Makefile
+and type
+	make install-T800

@@ -1,0 +1,79 @@
+# Copyright 1993 Philip F. McLauchlan (pm@robots.oxford.ac.uk)
+#                Robotics Research Group, Oxford University.
+SHELL = \bin\sh
+INCDIR = ..\include
+HFILEDIR = $(INCDIR)\horatio
+INCLUDE = $(HFILEDIR)\math.h
+HFILES1 = def.h math.h power2.h num_comp.h matrix.h vector.h pseudo.h orth_reg.h
+HFILES2 = eigen.h gauss.h chi2.h kalman.h vsdf.h mat_io.h poly.h numrec.h
+HFILES = $(HFILES1) $(HFILES2)
+
+#---Sun stuff---
+
+#---compilation options---
+CC = cl
+CFLAGS = -c -AL
+
+#---files---
+LIB = ..\lib\horatio.lib
+OFILES = math.obj numrec.obj power2.obj num_comp.obj matrix.obj vector.obj \
+	 gauss.obj chi2.obj kalman.obj vsdf.obj mat_io.obj poly.obj \
+	 pseudo.obj eigen.obj orth_reg.obj
+
+#---make rules---
+.c.obj:
+	$(CC) $(CFLAGS) $<
+	lib $(LIB) -+$*.obj, ,
+
+$(LIB): $(OFILES)
+
+#---transputer stuff---
+
+#---compilation options---
+TCOFLAGS = /t800 /j $(INCDIR) /DHOR_TRANSPUTER
+.SUFFIXES: .tio .trd
+
+#---files---
+TRANS_LIB_STDIO = ..\lib-T800\math_io.lib
+TRANS_LIB_STDRD = ..\lib-T800\math_rd.lib
+TCO_IO1 = math.tio numrec.tio power2.tio num_comp.tio matrix.tio vector.tio eigen.tio
+TCO_IO2 = gauss.tio chi2.tio kalman.tio vsdf.tio mat_io.tio poly.tio pseudo.tio orth_reg.tio
+TCOFILES_IO = $(TCO_IO1) $(TCO_IO2)
+TCO_RD1 = math.trd numrec.trd power2.trd num_comp.trd matrix.trd vector.trd eigen.trd
+TCO_RD2 = gauss.trd chi2.trd kalman.trd vsdf.trd mat_io.trd poly.trd pseudo.trd orth_reg.trd
+TCOFILES_RD = $(TCO_RD1) $(TCO_RD2)
+
+#---make rules---
+T800: $(TRANS_LIB_STDIO) $(TRANS_LIB_STDRD)
+
+$(TRANS_LIB_STDIO): $(TCOFILES_IO)
+	ilibr $(TCO_IO1) /o temp1.lib
+	ilibr $(TCO_IO2) /o temp2.lib
+	ilibr temp1.lib temp2.lib /o $(TRANS_LIB_STDIO)
+	del *.tio
+	del temp1.lib
+	del temp2.lib
+
+$(TRANS_LIB_STDRD): $(TCOFILES_RD)
+	ilibr $(TCO_RD1) /o temp1.lib
+	ilibr $(TCO_RD2) /o temp2.lib
+	ilibr temp1.lib temp2.lib /o $(TRANS_LIB_STDRD)
+	del *.trd
+	del temp1.lib
+	del temp2.lib
+
+.c.tio:
+	icc $* $(TCOFLAGS) /o $*.tio
+
+.c.trd:
+	icc $* $(TCOFLAGS) /DHOR_REDUCED_LIB /o $*.trd
+
+$(OFILES) $(TCOFILES_IO) $(TCOFILES_RD): $(INCLUDE) $(HFILEDIR)\global.h
+
+#---library include file rule---
+$(INCLUDE): $(HFILES) Makef_pc
+	cat $(HFILES1) > temp1
+	cat $(HFILES2) > temp2
+	cat temp1 temp2 > $(INCLUDE)
+	del temp1
+	del temp2
